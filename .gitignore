@@ -1,0 +1,11 @@
+# building
+build*
+
+# editor
+.vscode
+
+# ipynb_checkpoints
+plots/.ipynb_checkpoints
+
+# nsys report
+nsysreport
