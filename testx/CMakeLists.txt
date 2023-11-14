@@ -10,7 +10,7 @@ if (oneapi)
   endif()
 endif()
 
-if (opensycl)
+if (adaptivecpp)
   add_executable(InvariantMassesSYCL InvariantMassesSYCL.cxx)
   add_sycl_to_root_target(TARGET InvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
   if (single_precision)
