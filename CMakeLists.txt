@@ -2,7 +2,7 @@ project(genvectorx )
 
 cmake_minimum_required(VERSION 3.9)
 
-find_package(ROOT REQUIRED COMPONENTS MathCore ROOTVecOps)
+find_package(ROOT REQUIRED COMPONENTS MathCore ROOTVecOps GenVector)
 if (ROOT_FOUND)
   message(STATUS "ROOT library found")
   #message(STATUS "ROOT_INCLUDE_DIRS: ${ROOT_INCLUDE_DIRS}")

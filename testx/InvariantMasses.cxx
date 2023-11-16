@@ -18,8 +18,7 @@ using vec4d =
 template <class T> using Vector = ROOT::RVec<T>;
 
 Vector<arithmetic_type> InvariantMasses(const Vector<vec4d> v1,
-                                        const Vector<vec4d> v2, const size_t N,
-                                        const size_t local_size) {
+                                        const Vector<vec4d> v2, const size_t N) {
 
   Vector<arithmetic_type> invMasses(N);
 
@@ -72,7 +71,7 @@ int main(int argc, char **argv) {
   std::string arg1 = argv[1];
   std::size_t pos;
   std::size_t N = std::stoi(arg1, &pos);
-  size_t local_size = 128;
+  
 
   auto u_vectors = GenVectors(N);
   auto v_vectors = GenVectors(N);
@@ -81,7 +80,7 @@ int main(int argc, char **argv) {
       pt1(N, 1.), pt2(N, 1.), mass1(N, 1.), mass2(N, 1.);
 
   Vector<arithmetic_type> masses =
-      InvariantMasses(u_vectors, v_vectors, N, local_size);
+      InvariantMasses(u_vectors, v_vectors, N);
   auto start = std::chrono::system_clock::now();
 
   Vector<arithmetic_type> masses2 = ROOT::VecOps::InvariantMasses(

@@ -44,3 +44,6 @@ if (single_precision)
   target_compile_definitions(SInvariantMasses PUBLIC SINGLE_PRECISION)
   target_link_libraries(SInvariantMasses PUBLIC ROOT::MathCore ROOT::ROOTVecOps)
 endif()
+
+add_executable(Boost Boost.cxx)
+target_link_libraries(Boost PUBLIC ROOT::MathCore ROOT::GenVector)
