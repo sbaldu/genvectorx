@@ -8,6 +8,12 @@ if (oneapi)
     target_link_options(SInvariantMassesSYCL PUBLIC -E)
     add_sycl_to_root_target_exe(TARGET SInvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING SINGLE_PRECISION)
   endif()
+
+  add_executable(BoostSYCL BoostSYCL.cxx)
+  target_link_options(BoostSYCL PUBLIC -E)
+  add_sycl_to_root_target(TARGET BoostSYCL SOURCES BoostSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
+  
+
 endif()
 
 if (adaptivecpp)
@@ -17,6 +23,10 @@ if (adaptivecpp)
     add_executable(SInvariantMassesSYCL InvariantMassesSYCL.cxx)
     add_sycl_to_root_target(TARGET SInvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING SINGLE_PRECISION) 
   endif()
+
+  add_executable(BoostSYCL BoostSYCL.cxx)
+  add_sycl_to_root_target(TARGET BoostSYCL SOURCES BoostSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
+  
 endif()
 
 
