@@ -1,4 +1,3 @@
-#include "Math/Boost.h"
 #include "Math/Vector4D.h"
 #include <chrono>
 #include <vector>
@@ -9,22 +8,21 @@ using arithmetic_type = float;
 using arithmetic_type = double;
 #endif
 
-using vec4d =
+using vec4dI =
     ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<arithmetic_type>>;
-using Boost = ROOT::Math::Boost;
+using vec4dO =
+    ROOT::Math::LorentzVector<ROOT::Math::PxPyPzM4D<arithmetic_type>>;
 
 template <class T> using Vector = std::vector<T>; // ROOT::RVec<T>;
 
-vec4d *ApplyBoost(vec4d *lv, Boost bst, const size_t N) {
+vec4dO *ChangeCoord(vec4dI *lvi, const size_t N) {
 
-  Vector<arithmetic_type> invMasses(N);
-
-  vec4d *lvb = new vec4d[N];
+  vec4dO *lvo = new vec4dO[N];
 
   auto start = std::chrono::system_clock::now();
 
   for (size_t i = 0; i < N; i++) {
-    lvb[i] = bst(lv[i]);
+    lvo[i] = lvi[i];
   }
 
   auto end = std::chrono::system_clock::now();
@@ -34,12 +32,12 @@ vec4d *ApplyBoost(vec4d *lv, Boost bst, const size_t N) {
       1e-6;
   // std::cout << "cpu time " << duration << " (s)" << std::endl;
 
-  return lvb;
+  return lvo;
 }
 
-vec4d *GenVectors(int n) {
+vec4dI *GenVectors(int n) {
 
-  vec4d *vectors = new vec4d[n];
+  vec4dI *vectors = new vec4dI[n];
 
   // generate n -4 momentum quantities
   for (int i = 0; i < n; ++i) {
@@ -64,17 +62,15 @@ int main(int argc, char **argv) {
   std::size_t N = std::stoi(arg1, &pos);
   size_t local_size = 128;
 
-  vec4d *lv = GenVectors(N);
+  vec4dI *lvi = GenVectors(N);
 
-  Boost bst(0.3, 0.4, 0.5);
 
-  vec4d *lvb = ApplyBoost(lv, bst, N);
+  vec4dO *lvo = ChangeCoord(lvi, N);
 
   // for (size_t i=0; i<N; i++)
   //   assert(print_if_false((std::abs(masses[i] - 2.) <= 1e-5), i) );
- for (size_t i=0; i<N; i++)
-     std::cout << lv[i] << " " << lvb[i] << std::endl;
-     
-  delete[] lvb;
+
+  delete[] lvi;
+  delete[] lvo;
   return 0;
 }

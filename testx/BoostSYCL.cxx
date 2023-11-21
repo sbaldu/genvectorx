@@ -11,7 +11,7 @@ using Scalar = double;
 #endif
 
 using LVector =
-    ROOT::Experimental::LorentzVector<ROOT::Experimental::PtEtaPhiM4D<Scalar>>;
+    ROOT::Experimental::LorentzVector<ROOT::Experimental::PxPyPzE4D<Scalar>>;
 using Boost = ROOT::Experimental::Boost;
 
 template <class T> using Vector = std::vector<T>; // ROOT::RVec<T>;
@@ -19,7 +19,6 @@ template <class T> using Vector = std::vector<T>; // ROOT::RVec<T>;
 LVector *ApplyBoost(LVector *lv, Boost bst, sycl::queue queue, const size_t N,
                     const size_t local_size) {
 
-  Vector<Scalar> invMasses(N);
 
   LVector *lvb = new LVector[N];
 
@@ -53,7 +52,8 @@ LVector *ApplyBoost(LVector *lv, Boost bst, sycl::queue queue, const size_t N,
                        [=](sycl::nd_item<1> item) {
                          size_t id = item.get_global_id().get(0);
                          if (id < N) {
-                           lvb[id] = lv[id];//bst(lv[id]);
+                          auto bst_loc = bst_acc[0];
+                           lvb_acc[id] = bst_loc(lv_acc[id]);//bst(lv[id]);
                          }
                        }
 
@@ -115,6 +115,10 @@ int main(int argc, char **argv) {
 
   // for (size_t i=0; i<N; i++)
   //   assert(print_if_false((std::abs(masses[i] - 2.) <= 1e-5), i) );
+
+ for (size_t i=0; i<N; i++)
+     std::cout << lv[i] << " " << lvb[i] << std::endl;
+
 
   delete[] lv;
   delete[] lvb;

@@ -1,4 +1,4 @@
-project(genvectorx )
+project(genvectorx)
 
 cmake_minimum_required(VERSION 3.9)
 
@@ -20,7 +20,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" _BUILD_TYPE_UPPER)
 if (oneapi)
    SET(_sycl_search_dirs ${SYCL_ROOT_DIR} /usr/lib /usr/local/lib /opt/intel/oneapi/compiler/latest/linux)
    find_program(SYCL_COMPILER
-                NAMES icpx dpcpp clang++
+                NAMES clang++
                 HINTS ${_sycl_search_dirs}
                 PATH_SUFFIXES bin)
    find_path(SYCL_INCLUDE_DIR
@@ -31,8 +31,10 @@ if (oneapi)
              NAMES libsycl.so
              HINTS ${_sycl_search_dirs}
              PATH_SUFFIXES lib)
-
-    
+    message(STATUS "_sycl_search_dirs: ${_sycl_search_dirs}")
+    message(STATUS "SYCL_COMPILER: ${SYCL_COMPILER}")
+    message(STATUS "SYCL_INCLUDE_DIR: ${SYCL_INCLUDE_DIR}")
+    message(STATUS "SYCL_LIB_DIR: ${SYCL_LIB_DIR}")
 
     if (syclcuda)
       set(_fsycl_targets "-fsycl-targets=nvptx64-nvidia-cuda,spir64_x86_64,spir64 -Xsycl-target-backend=nvptx64-nvidia-cuda --cuda-gpu-arch=sm_${CMAKE_CUDA_ARCHITECTURES} --cuda-path=${CUDA_TOOLKIT_ROOT_DIR}")
@@ -261,25 +263,25 @@ endif()
 
 
 add_library(GenVectorX SHARED
-src/3DConversions.cxx
-src/BitReproducible.cxx  
-src/BoostZ.cxx           
-src/Quaternion.cxx        
-src/RotationZYX.cxx
-src/3DDistances.cxx      
-src/Boost.cxx            
-src/EulerAngles.cxx      
-src/QuaternionXaxial.cxx  
-src/VecOps.cxx
-src/AxisAngle.cxx        
-src/BoostX.cxx           
-src/LorentzRotation.cxx  
-src/Rotation3D.cxx        
-src/VectorUtil.cxx
-src/AxisAngleXother.cxx  
-src/BoostY.cxx           
-src/MathUtil.cxx         
-src/Rotation3DxAxial.cxx
+  src/3DConversions.cxx
+  src/BitReproducible.cxx  
+  src/BoostZ.cxx           
+  src/Quaternion.cxx        
+  src/RotationZYX.cxx
+  src/3DDistances.cxx      
+  src/Boost.cxx            
+  src/EulerAngles.cxx      
+  src/QuaternionXaxial.cxx  
+  #src/VecOps.cxx
+  src/AxisAngle.cxx        
+  src/BoostX.cxx           
+  src/LorentzRotation.cxx  
+  src/Rotation3D.cxx        
+  src/VectorUtil.cxx
+  src/AxisAngleXother.cxx  
+  src/BoostY.cxx           
+  src/MathUtil.cxx         
+  src/Rotation3DxAxial.cxx
 )
 
 target_include_directories(GenVectorX INTERFACE inc)
@@ -301,9 +303,35 @@ if ((cuda) OR (sycl))
     target_compile_definitions(VecOps PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING)
   endif()
   if (sycl)
-      set_target_properties(VecOps PROPERTIES LINKER_LANGUAGE CXX)
+     set_target_properties(VecOps PROPERTIES LINKER_LANGUAGE CXX)
+     #target_compile_definitions(VecOps PUBLIC ROOT_MATH_SYCL)
+     add_sycl_to_root_target(TARGET VecOps SOURCES src/VecOps.cxx HEADERS inc/SYCLMath/VecOps.h INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ DEPENDENCIES GenVectorX SYCLMath COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+
+      set_target_properties(GenVectorX PROPERTIES LINKER_LANGUAGE CXX)
       #target_compile_definitions(VecOps PUBLIC ROOT_MATH_SYCL)
-      add_sycl_to_root_target(TARGET VecOps SOURCES src/VecOps.cxx HEADERS inc/SYCLMath/VecOps.h INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ DEPENDENCIES GenVectorX SYCLMath COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+      add_sycl_to_root_target(TARGET GenVectorX SOURCES 
+      src/3DConversions.cxx
+      src/BitReproducible.cxx  
+      src/BoostZ.cxx           
+      src/Quaternion.cxx        
+      src/RotationZYX.cxx
+      src/3DDistances.cxx      
+      src/Boost.cxx            
+      src/EulerAngles.cxx      
+      src/QuaternionXaxial.cxx  
+      #src/VecOps.cxx
+      src/AxisAngle.cxx        
+      src/BoostX.cxx           
+      src/LorentzRotation.cxx  
+      src/Rotation3D.cxx        
+      src/VectorUtil.cxx
+      src/AxisAngleXother.cxx  
+      src/BoostY.cxx           
+      src/MathUtil.cxx         
+      src/Rotation3DxAxial.cxx
+      INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ 
+      DEPENDENCIES SYCLMath 
+      COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
   endif()
 
   install(TARGETS GenVectorX SYCLMath VecOps
