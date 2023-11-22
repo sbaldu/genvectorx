@@ -30,7 +30,7 @@ vec4dO *ChangeCoord(vec4dI *lvi, const size_t N) {
       std::chrono::duration_cast<std::chrono::microseconds>(end - start)
           .count() *
       1e-6;
-  // std::cout << "cpu time " << duration << " (s)" << std::endl;
+  std::cout << "cpu time " << duration << " (s)" << std::endl;
 
   return lvo;
 }
@@ -67,8 +67,8 @@ int main(int argc, char **argv) {
 
   vec4dO *lvo = ChangeCoord(lvi, N);
 
-  // for (size_t i=0; i<N; i++)
-  //   assert(print_if_false((std::abs(masses[i] - 2.) <= 1e-5), i) );
+  for (size_t i=0; i<N; i++)
+    std::cout << lvi[i] << ", " << lvo[i] << std::endl;
 
   delete[] lvi;
   delete[] lvo;

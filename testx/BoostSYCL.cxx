@@ -44,9 +44,6 @@ LVector *ApplyBoost(LVector *lv, Boost bst, sycl::queue queue, const size_t N,
                              sycl::write_only};
       sycl::accessor bst_acc{bst_sycl, cgh, sycl::range<1>(1),
                              sycl::read_write};
-      // auto v1_acc = v1_sycl.get_access<mode::read>(cgh);
-      // auto v2_acc = v2_sycl.get_access<mode::read>(cgh);
-      // auto m_acc = m_sycl.get_access<mode::write>(cgh);
 
       cgh.parallel_for(execution_range,
                        [=](sycl::nd_item<1> item) {
