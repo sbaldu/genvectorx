@@ -304,11 +304,11 @@ if ((cuda) OR (sycl))
   endif()
   if (sycl)
      set_target_properties(VecOps PROPERTIES LINKER_LANGUAGE CXX)
-     #target_compile_definitions(VecOps PUBLIC ROOT_MATH_SYCL)
+
      add_sycl_to_root_target(TARGET VecOps SOURCES src/VecOps.cxx HEADERS inc/SYCLMath/VecOps.h INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ DEPENDENCIES GenVectorX SYCLMath COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
 
       set_target_properties(GenVectorX PROPERTIES LINKER_LANGUAGE CXX)
-      #target_compile_definitions(VecOps PUBLIC ROOT_MATH_SYCL)
+
       add_sycl_to_root_target(TARGET GenVectorX SOURCES 
       src/3DConversions.cxx
       src/BitReproducible.cxx  
@@ -332,7 +332,9 @@ if ((cuda) OR (sycl))
       INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ 
       DEPENDENCIES SYCLMath 
       COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+
   endif()
+      
 
   install(TARGETS GenVectorX SYCLMath VecOps
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

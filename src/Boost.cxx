@@ -19,10 +19,10 @@
 #include "SYCLMath/GenVector/PxPyPzE4D.h"
 #include "SYCLMath/GenVector/DisplacementVector3D.h"
 #include "SYCLMath/GenVector/Cartesian3D.h"
-#include "SYCLMath/GenVector/GenVector_exception.h"
+//#include "SYCLMath/GenVector/GenVector_exception.h"
 
-#include <cmath>
-#include <algorithm>
+//#include <cmath>
+//#include <algorithm>
 
 //#ifdef TEX
 /**
@@ -80,7 +80,7 @@ void Boost::SetComponents (Scalar bx, Scalar by, Scalar bz) {
    if (bp2 >= 1) {
       //GenVector::Throw (
       //                        "Beta Vector supplied to set Boost represents speed >= c");
-      // SetIdentity();
+      SetIdentity();
       return;
    }
    Scalar gamma = 1.0 / mysqrt(1.0 - bp2);
@@ -170,7 +170,7 @@ Boost Boost::Inverse() const {
 
 
 // ========== I/O =====================
-
+/*
 std::ostream & operator<< (std::ostream & os, const Boost & b) {
    // TODO - this will need changing for machine-readable issues
    //        and even the human readable form needs formatiing improvements
@@ -182,6 +182,7 @@ std::ostream & operator<< (std::ostream & os, const Boost & b) {
    os << "\n" << "\t"  << "  " << "\t"  << "  " << "\t"  << "  " << m[15] << "\n";
    return os;
 }
+*/
 
 } //namespace Experimental
 } //namespace ROOT

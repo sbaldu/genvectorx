@@ -22,9 +22,9 @@
 #include "SYCLMath/GenVector/DisplacementVector3D.h"
 #include "SYCLMath/GenVector/Cartesian3D.h"
 
-#include "SYCLMath/GenVector/BoostX.h"
-#include "SYCLMath/GenVector/BoostY.h"
-#include "SYCLMath/GenVector/BoostZ.h"
+//#include "SYCLMath/GenVector/BoostX.h"
+//#include "SYCLMath/GenVector/BoostY.h"
+//#include "SYCLMath/GenVector/BoostZ.h"
 
 namespace ROOT {
 
@@ -102,9 +102,10 @@ public:
      Construct from an axial boost
   */
 
-  explicit Boost( BoostX const & bx ) {SetComponents(bx.BetaVector());}
+  /*explicit Boost( BoostX const & bx ) {SetComponents(bx.BetaVector());}
   explicit Boost( BoostY const & by ) {SetComponents(by.BetaVector());}
   explicit Boost( BoostZ const & bz ) {SetComponents(bz.BetaVector());}
+*/
 
   // The compiler-generated copy ctor, copy assignment, and dtor are OK.
 
@@ -122,13 +123,14 @@ public:
   /**
      Assign from an axial pure boost
   */
+ /*
   Boost &
   operator=( BoostX const & bx ) { return operator=(Boost(bx)); }
   Boost &
   operator=( BoostY const & by ) { return operator=(Boost(by)); }
   Boost &
   operator=( BoostZ const & bz ) { return operator=(Boost(bz)); }
-
+*/
   /**
      Re-adjust components to eliminate small deviations from a perfect
      orthosyplectic matrix.
@@ -293,7 +295,7 @@ private:
  */
   // TODO - I/O should be put in the manipulator form
 
-std::ostream & operator<< (std::ostream & os, const Boost & b);
+//std::ostream & operator<< (std::ostream & os, const Boost & b);
 
 
 } //namespace Experimental
