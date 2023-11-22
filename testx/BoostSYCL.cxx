@@ -336,8 +336,8 @@ LVector *ApplyBoost(LVector *lv, Boost bst, sycl::queue queue, const size_t N,
                        [=](sycl::nd_item<1> item) {
                          size_t id = item.get_global_id().get(0);
                          if (id < N) {
-                          auto bst_loc = bst_acc[0];
-                           lvb_acc[id] = bst_loc(lv_acc[id]);//bst(lv[id]);
+                          Boost bst_loc = bst_acc[0];//.operator();
+                           lvb_acc[id] = bst_loc.operator()<LVector>(lv_acc[id]);//bst(lv[id]);
                          }
                        }
 

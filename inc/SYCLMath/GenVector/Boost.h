@@ -22,9 +22,9 @@
 #include "SYCLMath/GenVector/DisplacementVector3D.h"
 #include "SYCLMath/GenVector/Cartesian3D.h"
 
-//#include "SYCLMath/GenVector/BoostX.h"
-//#include "SYCLMath/GenVector/BoostY.h"
-//#include "SYCLMath/GenVector/BoostZ.h"
+#include "SYCLMath/GenVector/BoostX.h"
+#include "SYCLMath/GenVector/BoostY.h"
+#include "SYCLMath/GenVector/BoostZ.h"
 
 namespace ROOT {
 
@@ -102,10 +102,10 @@ public:
      Construct from an axial boost
   */
 
-  /*explicit Boost( BoostX const & bx ) {SetComponents(bx.BetaVector());}
+  explicit Boost( BoostX const & bx ) {SetComponents(bx.BetaVector());}
   explicit Boost( BoostY const & by ) {SetComponents(by.BetaVector());}
   explicit Boost( BoostZ const & bz ) {SetComponents(bz.BetaVector());}
-*/
+
 
   // The compiler-generated copy ctor, copy assignment, and dtor are OK.
 
@@ -123,14 +123,14 @@ public:
   /**
      Assign from an axial pure boost
   */
- /*
+
   Boost &
   operator=( BoostX const & bx ) { return operator=(Boost(bx)); }
   Boost &
   operator=( BoostY const & by ) { return operator=(Boost(by)); }
   Boost &
   operator=( BoostZ const & bz ) { return operator=(Boost(bz)); }
-*/
+
   /**
      Re-adjust components to eliminate small deviations from a perfect
      orthosyplectic matrix.
@@ -142,9 +142,30 @@ public:
   /**
      Set components from beta_x, beta_y, and beta_z
   */
-  void
-  SetComponents (Scalar beta_x, Scalar beta_y, Scalar beta_z);
-
+  //void
+  //SetComponents (Scalar beta_x, Scalar beta_y, Scalar beta_z);
+void SetComponents (Scalar bx, Scalar by, Scalar bz) {
+   // set the boost beta as 3 components
+   Scalar bp2 = bx*bx + by*by + bz*bz;
+   if (bp2 >= 1) {
+      //GenVector::Throw (
+      //                        "Beta Vector supplied to set Boost represents speed >= c");
+      SetIdentity();
+      return;
+   }
+   Scalar gamma = 1.0 / mysqrt(1.0 - bp2);
+   Scalar bgamma = gamma * gamma / (1.0 + gamma);
+   fM[kXX] = 1.0 + bgamma * bx * bx;
+   fM[kYY] = 1.0 + bgamma * by * by;
+   fM[kZZ] = 1.0 + bgamma * bz * bz;
+   fM[kXY] = bgamma * bx * by;
+   fM[kXZ] = bgamma * bx * bz;
+   fM[kYZ] = bgamma * by * bz;
+   fM[kXT] = gamma * bx;
+   fM[kYT] = gamma * by;
+   fM[kZT] = gamma * bz;
+   fM[kTT] = gamma;
+}
   /**
      Get components into beta_x, beta_y, and beta_z
   */
@@ -217,8 +238,22 @@ public:
      Lorentz transformation operation on a Minkowski ('Cartesian')
      LorentzVector
   */
-  LorentzVector< ROOT::Experimental::PxPyPzE4D<double> >
-  operator() (const LorentzVector< ROOT::Experimental::PxPyPzE4D<double> > & v) const;
+
+  //LorentzVector< PxPyPzE4D<double> >
+  //operator() (const LorentzVector< PxPyPzE4D<double> > & v) const;
+  LorentzVector< PxPyPzE4D<double> >
+  operator() (const LorentzVector< PxPyPzE4D<double> > & v) const {
+   // apply bosost to a PxPyPzE LorentzVector
+   Scalar x = v.Px();
+   Scalar y = v.Py();
+   Scalar z = v.Pz();
+   Scalar t = v.E();
+   return LorentzVector< PxPyPzE4D<double> >
+      ( fM[kXX]*x + fM[kXY]*y + fM[kXZ]*z + fM[kXT]*t
+        , fM[kXY]*x + fM[kYY]*y + fM[kYZ]*z + fM[kYT]*t
+        , fM[kXZ]*x + fM[kYZ]*y + fM[kZZ]*z + fM[kZT]*t
+        , fM[kXT]*x + fM[kYT]*y + fM[kZT]*z + fM[kTT]*t );
+}
 
   /**
      Lorentz transformation operation on a LorentzVector in any
@@ -280,7 +315,15 @@ public:
 
 protected:
 
-  void SetIdentity();
+  //void SetIdentity();
+
+void SetIdentity() {
+   // set identity boost
+   fM[kXX] = 1.0;  fM[kXY] = 0.0; fM[kXZ] = 0.0; fM[kXT] = 0.0;
+   fM[kYY] = 1.0; fM[kYZ] = 0.0; fM[kYT] = 0.0;
+   fM[kZZ] = 1.0; fM[kZT] = 0.0;
+   fM[kTT] = 1.0;
+}
 
 private:
 

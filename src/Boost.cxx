@@ -140,19 +140,7 @@ void Boost::Rectify() {
    SetComponents ( beta );
 }
 
-LorentzVector< PxPyPzE4D<double> >
-Boost::operator() (const LorentzVector< PxPyPzE4D<double> > & v) const {
-   // apply bosost to a PxPyPzE LorentzVector
-   Scalar x = v.Px();
-   Scalar y = v.Py();
-   Scalar z = v.Pz();
-   Scalar t = v.E();
-   return LorentzVector< PxPyPzE4D<double> >
-      ( fM[kXX]*x + fM[kXY]*y + fM[kXZ]*z + fM[kXT]*t
-        , fM[kXY]*x + fM[kYY]*y + fM[kYZ]*z + fM[kYT]*t
-        , fM[kXZ]*x + fM[kYZ]*y + fM[kZZ]*z + fM[kZT]*t
-        , fM[kXT]*x + fM[kYT]*y + fM[kZT]*z + fM[kTT]*t );
-}
+
 
 void Boost::Invert() {
    // invert in place boost (modifying the object)
