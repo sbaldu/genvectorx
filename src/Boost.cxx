@@ -64,7 +64,7 @@
 namespace ROOT {
 
 namespace Experimental {
-
+/*
 void Boost::SetIdentity() {
    // set identity boost
    fM[kXX] = 1.0;  fM[kXY] = 0.0; fM[kXZ] = 0.0; fM[kXT] = 0.0;
@@ -96,6 +96,7 @@ void Boost::SetComponents (Scalar bx, Scalar by, Scalar bz) {
    fM[kZT] = gamma * bz;
    fM[kTT] = gamma;
 }
+*/
 
 void Boost::GetComponents (Scalar& bx, Scalar& by, Scalar& bz) const {
    // get beta of the boots as 3 components
