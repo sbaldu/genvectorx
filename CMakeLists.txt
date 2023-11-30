@@ -20,7 +20,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" _BUILD_TYPE_UPPER)
 if (oneapi)
    SET(_sycl_search_dirs ${SYCL_ROOT_DIR} /usr/lib /usr/local/lib /opt/intel/oneapi/compiler/latest/linux)
    find_program(SYCL_COMPILER
-                NAMES clang++
+                NAMES icpx clang++
                 HINTS ${_sycl_search_dirs}
                 PATH_SUFFIXES bin)
    find_path(SYCL_INCLUDE_DIR
