@@ -23,8 +23,14 @@ def result2list(exe, N, nruns):
         j = result.find("(s)")
         if (i<0) or (j<0):
             break
-        time[r] = float(result[i+5:j])
-        result = result[j+3:]
+        try:
+            time[r] = float(result[i+5:j])
+        except:
+            time[r] = 0.
+        try:
+            result = result[j+3:]
+        except:
+            result = ""
     #endif
     return time
 
@@ -74,31 +80,40 @@ def collect_results(testname, platform, nruns):
     savez_dict['Ssizes'] = Ssizes 
     savez_dict['sizes_gb'] = sizes_gb
     savez_dict['Ssizes_gb'] = Ssizes_gb 
-
-    if (platform != "hip"):
-        timeoneapi, stdoneapi = run_benchmark(buildoneapi, sizes, testname = testname, nruns = nruns, btype = 'sycl')
-        Stimeoneapi, Sstdoneapi = run_benchmark(buildoneapi, Ssizes, testname = "S"+testname, nruns = nruns, btype = 'sycl')
-        savez_dict['timeoneapi'] = timeoneapi
-        savez_dict['Stimeoneapi'] = Stimeoneapi
-        savez_dict['stdoneapi'] = stdoneapi
-        savez_dict['Sstdoneapi'] = Sstdoneapi
-    #endif
     
-    timeacpp, stdacpp = run_benchmark(buildacpp, sizes, testname = testname, nruns = nruns, btype = 'sycl')
-    Stimeacpp, Sstdacpp = run_benchmark(buildacpp, Ssizes, testname = "S"+testname, nruns = nruns, btype = 'sycl')
-    savez_dict['timeacpp'] = timeacpp
-    savez_dict['Stimeacpp'] = Stimeacpp
-    savez_dict['stdacpp'] = stdacpp
-    savez_dict['Sstdacpp'] = Sstdacpp
+    if (platform == 'cpu'):
+        timecpu, stdcpu = run_benchmark(buildacpp, sizes, testname = testname, nruns = nruns, btype = 'cpu')
+        Stimecpu, Sstdcpu = run_benchmark(buildacpp, Ssizes, testname = "S"+testname, nruns = nruns, btype = 'cpu')
+        savez_dict['timecpu'] = timecpu
+        savez_dict['Stimecpu'] = Stimecpu
+        savez_dict['stdcpu'] = stdcpu
+        savez_dict['Sstdcpu'] = Sstdcpu
+    else:
+        if (platform != "hip"):
+            timeoneapi, stdoneapi = run_benchmark(buildoneapi, sizes, testname = testname, nruns = nruns, btype = 'sycl')
+            Stimeoneapi, Sstdoneapi = run_benchmark(buildoneapi, Ssizes, testname = "S"+testname, nruns = nruns, btype = 'sycl')
+            savez_dict['timeoneapi'] = timeoneapi
+            savez_dict['Stimeoneapi'] = Stimeoneapi
+            savez_dict['stdoneapi'] = stdoneapi
+            savez_dict['Sstdoneapi'] = Sstdoneapi
+        #endif
 
-    if (platform == "cuda"):
-        timecuda, stdcuda = run_benchmark(buildcuda, sizes, testname = testname, nruns = nruns, btype = 'cuda')
-        Stimecuda, Sstdcuda = run_benchmark(buildcuda, Ssizes, nruns = nruns, testname = "S"+testname, btype = 'cuda')
-        savez_dict['timecuda'] = timecuda
-        savez_dict['Stimecuda'] = Stimecuda
-        savez_dict['stdcuda'] = stdcuda
-        savez_dict['Sstdcuda'] = Sstdcuda
+        timeacpp, stdacpp = run_benchmark(buildacpp, sizes, testname = testname, nruns = nruns, btype = 'sycl')
+        Stimeacpp, Sstdacpp = run_benchmark(buildacpp, Ssizes, testname = "S"+testname, nruns = nruns, btype = 'sycl')
+        savez_dict['timeacpp'] = timeacpp
+        savez_dict['Stimeacpp'] = Stimeacpp
+        savez_dict['stdacpp'] = stdacpp
+        savez_dict['Sstdacpp'] = Sstdacpp
 
+        if (platform == "cuda"):
+            timecuda, stdcuda = run_benchmark(buildcuda, sizes, testname = testname, nruns = nruns, btype = 'cuda')
+            Stimecuda, Sstdcuda = run_benchmark(buildcuda, Ssizes, nruns = nruns, testname = "S"+testname, btype = 'cuda')
+            savez_dict['timecuda'] = timecuda
+            savez_dict['Stimecuda'] = Stimecuda
+            savez_dict['stdcuda'] = stdcuda
+            savez_dict['Sstdcuda'] = Sstdcuda
+        #endif
+    #endif
     np.savez(path+testname + "_" + platform + "_nruns" + str(nruns) + ".npz", **savez_dict)
     return
 
