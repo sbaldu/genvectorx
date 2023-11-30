@@ -42,7 +42,7 @@
 
 #endif
 
-#ifdef __CUDACC__
+#if defined(ROOT_MATH_CUDA)
 
 #define __roodevice__ __device__
 #define __roohost__ __host__

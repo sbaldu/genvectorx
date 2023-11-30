@@ -1,48 +1,26 @@
-#include "Math/Boost.h"
-#include "Math/Vector4D.h"
+#include "SYCLMath/Boost.h"
+#include "SYCLMath/Vector4D.h"
+#include "SYCLMath/VecOps.h"
 #include <chrono>
-#include <vector>
 
 #ifdef SINGLE_PRECISION
-using arithmetic_type = float;
+using Scalar = float;
 #else
-using arithmetic_type = double;
+using Scalar = double;
 #endif
 
-using vec4d =
-    ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<arithmetic_type>>;
-using Boost = ROOT::Math::Boost;
+using LVector =
+    ROOT::Experimental::LorentzVector<ROOT::Experimental::PtEtaPhiM4D<Scalar>>;
+using Boost = ROOT::Experimental::Boost;
 
-template <class T> using Vector = std::vector<T>; // ROOT::RVec<T>;
+LVector *GenVectors(int n)
+{
 
-vec4d *ApplyBoost(vec4d *lv, Boost bst, const size_t N) {
-
-  Vector<arithmetic_type> invMasses(N);
-
-  vec4d *lvb = new vec4d[N];
-
-  auto start = std::chrono::system_clock::now();
-
-  for (size_t i = 0; i < N; i++) {
-    lvb[i] = bst(lv[i]);
-  }
-
-  auto end = std::chrono::system_clock::now();
-  auto duration =
-      std::chrono::duration_cast<std::chrono::microseconds>(end - start)
-          .count() *
-      1e-6;
-  // std::cout << "cpu time " << duration << " (s)" << std::endl;
-
-  return lvb;
-}
-
-vec4d *GenVectors(int n) {
-
-  vec4d *vectors = new vec4d[n];
+  LVector *vectors = new LVector[n];
 
   // generate n -4 momentum quantities
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < n; ++i)
+  {
     // fill vectors
     vectors[i] = {1., 1., 1., 1.};
   }
@@ -50,31 +28,41 @@ vec4d *GenVectors(int n) {
   return vectors;
 }
 
-bool print_if_false(const bool assertion, size_t i) {
-  if (!assertion) {
+bool print_if_false(const bool assertion, size_t i)
+{
+  if (!assertion)
+  {
     std::cout << "Assertion failed at index " << i << std::endl;
   }
   return assertion;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 
   std::string arg1 = argv[1];
   std::size_t pos;
   std::size_t N = std::stoi(arg1, &pos);
-  size_t local_size = 128;
+  std::string arg2 = argv[2];
+  std::size_t nruns = std::stoi(arg2, &pos);
 
-  vec4d *lv = GenVectors(N);
+  LVector *lv = GenVectors(N);
+  LVector *lvb = new LVector[N];
 
   Boost bst(0.3, 0.4, 0.5);
 
-  vec4d *lvb = ApplyBoost(lv, bst, N);
+  for (size_t i = 0; i < nruns; i++)
+    lvb = ROOT::Experimental::ApplyBoost(lv, bst, N);
 
-  // for (size_t i=0; i<N; i++)
-  //   assert(print_if_false((std::abs(masses[i] - 2.) <= 1e-5), i) );
- for (size_t i=0; i<N; i++)
-     std::cout << lv[i] << " " << lvb[i] << std::endl;
-     
+  for (size_t i = 0; i < N; i++)
+  {
+    assert(print_if_false((std::abs(lvb[i].Pt() - 1.7225) <= 1e-5), i));
+    assert(print_if_false((std::abs(lvb[i].Eta() - 1.96333) <= 1e-5), i));
+    assert(print_if_false((std::abs(lvb[i].Phi() - 2.20416) <= 1e-5), i));
+    assert(print_if_false((std::abs(lvb[i].M() - 3.11127) <= 1e-5), i));
+  }
+
+  delete[] lv;
   delete[] lvb;
   return 0;
 }
