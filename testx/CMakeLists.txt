@@ -31,7 +31,7 @@ if (adaptivecpp)
 
   add_executable(ChangeCoordSYCL ChangeCoordSYCL.cxx)
   add_sycl_to_root_target(TARGET ChangeCoordSYCL SOURCES ChangeCoordSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
-  
+
   add_executable(BoostSYCL BoostSYCL.cxx)
   add_sycl_to_root_target(TARGET BoostSYCL SOURCES BoostSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
   
@@ -60,6 +60,13 @@ if (cuda)
   target_compile_options(ChangeCoordCUDA PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
   set_target_properties(ChangeCoordCUDA PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   target_compile_definitions(ChangeCoordCUDA PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING)
+
+  add_executable(BoostCUDA BoostCUDA.cu)
+  set_target_properties(BoostCUDA PROPERTIES LINKER_LANGUAGE CUDA)
+  target_link_libraries(BoostCUDA PUBLIC GenVectorX SYCLMath VecOps)
+  target_compile_options(BoostCUDA PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
+  set_target_properties(BoostCUDA PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+  target_compile_definitions(BoostCUDA PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING)
 
 endif()
 
