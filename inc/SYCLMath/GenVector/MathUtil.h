@@ -42,7 +42,7 @@
 
 #endif
 
-#ifdef __CUDACC__
+#if defined(ROOT_MATH_CUDA) && defined(__CUDACC__)
 
 #define __roodevice__ __device__
 #define __roohost__ __host__
@@ -99,7 +99,7 @@ template <class Scalar> Scalar mypow(Scalar x, Scalar y) {
 
 template <class T> T etaMax2() { return static_cast<T>(22756.0); }
 
-template <typename Scalar> inline Scalar Eta_FromRhoZ(Scalar rho, Scalar z) {
+template <typename Scalar>  Scalar Eta_FromRhoZ(Scalar rho, Scalar z) {
   if (rho > 0) {
     // value to control Taylor expansion of sqrt
     // static const Scalar

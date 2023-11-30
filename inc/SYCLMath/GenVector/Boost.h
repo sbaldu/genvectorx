@@ -17,6 +17,8 @@
 #ifndef ROOT_Experimental_GenVector_Boost
 #define ROOT_Experimental_GenVector_Boost 1
 
+#include "SYCLMath/GenVector/MathUtil.h"
+
 #include "SYCLMath/GenVector/LorentzVector.h"
 #include "SYCLMath/GenVector/PxPyPzE4D.h"
 #include "SYCLMath/GenVector/DisplacementVector3D.h"
@@ -69,19 +71,19 @@ public:
   /**
       Default constructor (identity transformation)
   */
-  Boost() { SetIdentity(); }
+  __roohost__ __roodevice__ Boost() { SetIdentity(); }
 
   /**
      Construct given a three Scalars beta_x, beta_y, and beta_z
    */
-  Boost(Scalar beta_x, Scalar beta_y, Scalar beta_z)
+  __roohost__ __roodevice__ Boost(Scalar beta_x, Scalar beta_y, Scalar beta_z)
    { SetComponents(beta_x, beta_y, beta_z); }
 
   /**
      Construct given a beta vector (which must have methods x(), y(), z())
    */
   template <class Avector>
-  explicit
+  __roohost__ __roodevice__ explicit
   Boost(const Avector & beta) { SetComponents(beta); }
 
   /**
@@ -89,12 +91,13 @@ public:
      beginning and end of an array of three Scalars to use as beta_x, _y, and _z
    */
   template<class IT>
+  __roohost__ __roodevice__
   Boost(IT begin, IT end) { SetComponents(begin,end); }
 
    /**
       copy constructor
    */
-   Boost(Boost const & b) {
+   __roohost__ __roodevice__ Boost(Boost const & b) {
       *this = b;
    }
 
@@ -102,16 +105,17 @@ public:
      Construct from an axial boost
   */
 
-  explicit Boost( BoostX const & bx ) {SetComponents(bx.BetaVector());}
-  explicit Boost( BoostY const & by ) {SetComponents(by.BetaVector());}
-  explicit Boost( BoostZ const & bz ) {SetComponents(bz.BetaVector());}
+  __roohost__ __roodevice__ explicit Boost( BoostX const & bx ) {SetComponents(bx.BetaVector());}
+  __roohost__ __roodevice__ explicit Boost( BoostY const & by ) {SetComponents(by.BetaVector());}
+  __roohost__ __roodevice__ explicit Boost( BoostZ const & bz ) {SetComponents(bz.BetaVector());}
+
 
   // The compiler-generated copy ctor, copy assignment, and dtor are OK.
 
    /**
       Assignment operator
     */
-   Boost &
+  __roohost__ __roodevice__ Boost &
    operator=(Boost const & rhs ) {
     for (unsigned int i=0; i < 10; ++i) {
        fM[i] = rhs.fM[i];
@@ -122,38 +126,60 @@ public:
   /**
      Assign from an axial pure boost
   */
-  Boost &
+
+  __roohost__ __roodevice__ Boost &
   operator=( BoostX const & bx ) { return operator=(Boost(bx)); }
-  Boost &
+  __roohost__ __roodevice__ Boost &
   operator=( BoostY const & by ) { return operator=(Boost(by)); }
-  Boost &
+  __roohost__ __roodevice__ Boost &
   operator=( BoostZ const & bz ) { return operator=(Boost(bz)); }
 
   /**
      Re-adjust components to eliminate small deviations from a perfect
      orthosyplectic matrix.
    */
-  void Rectify();
+  __roohost__ __roodevice__ void Rectify();
 
   // ======== Components ==============
 
   /**
      Set components from beta_x, beta_y, and beta_z
   */
-  void
-  SetComponents (Scalar beta_x, Scalar beta_y, Scalar beta_z);
-
+  //void
+  //SetComponents (Scalar beta_x, Scalar beta_y, Scalar beta_z);
+__roohost__ __roodevice__ void SetComponents (Scalar bx, Scalar by, Scalar bz) {
+   // set the boost beta as 3 components
+   Scalar bp2 = bx*bx + by*by + bz*bz;
+   if (bp2 >= 1) {
+      //GenVector::Throw (
+      //                        "Beta Vector supplied to set Boost represents speed >= c");
+      SetIdentity();
+      return;
+   }
+   Scalar gamma = 1.0 / mysqrt(1.0 - bp2);
+   Scalar bgamma = gamma * gamma / (1.0 + gamma);
+   fM[kXX] = 1.0 + bgamma * bx * bx;
+   fM[kYY] = 1.0 + bgamma * by * by;
+   fM[kZZ] = 1.0 + bgamma * bz * bz;
+   fM[kXY] = bgamma * bx * by;
+   fM[kXZ] = bgamma * bx * bz;
+   fM[kYZ] = bgamma * by * bz;
+   fM[kXT] = gamma * bx;
+   fM[kYT] = gamma * by;
+   fM[kZT] = gamma * bz;
+   fM[kTT] = gamma;
+}
   /**
      Get components into beta_x, beta_y, and beta_z
   */
-  void
+  __roohost__ __roodevice__ void
   GetComponents (Scalar& beta_x, Scalar& beta_y, Scalar& beta_z) const;
 
   /**
      Set components from a beta vector
   */
   template <class Avector>
-  void
+  __roohost__ __roodevice__ void
   SetComponents (const Avector & beta)
    { SetComponents(beta.x(), beta.y(), beta.z()); }
 
@@ -162,7 +188,7 @@ public:
      an array of three Scalars to use as beta_x,beta _y, and beta_z
    */
   template<class IT>
-  void SetComponents(IT begin, IT end) {
+  __roohost__ __roodevice__ void SetComponents(IT begin, IT end) {
     IT a = begin; IT b = ++begin; IT c = ++begin;
     (void)end;
     assert (++begin==end);
@@ -174,7 +200,7 @@ public:
      an array of three Scalars into which to place beta_x, beta_y, and beta_z
    */
   template<class IT>
-  void GetComponents(IT begin, IT end) const {
+  __roohost__ __roodevice__ void GetComponents(IT begin, IT end) const {
     IT a = begin; IT b = ++begin; IT c = ++begin;
     (void)end;
     assert (++begin==end);
@@ -186,7 +212,7 @@ public:
      an array into which to place beta_x, beta_y, and beta_z
    */
   template<class IT>
-  void GetComponents(IT begin ) const {
+  __roohost__ __roodevice__ void GetComponents(IT begin ) const {
      double bx,by,bz = 0;
      GetComponents (bx,by,bz);
      *begin++ = bx;
@@ -198,7 +224,7 @@ public:
      The beta vector for this boost
    */
   typedef  DisplacementVector3D<Cartesian3D<double>, DefaultCoordinateSystemTag > XYZVector;
-  XYZVector BetaVector() const;
+  __roohost__ __roodevice__ XYZVector BetaVector() const;
 
   /**
      Get elements of internal 4x4 symmetric representation, into a data
@@ -206,7 +232,7 @@ public:
      Note -- 16 Scalars will be written into the array; if the array is not
      that large, then this will lead to undefined behavior.
   */
-  void
+  __roohost__ __roodevice__ void
   GetLorentzRotation (Scalar r[]) const;
 
   // =========== operations ==============
@@ -215,15 +241,29 @@ public:
      Lorentz transformation operation on a Minkowski ('Cartesian')
      LorentzVector
   */
-  LorentzVector< ROOT::Experimental::PxPyPzE4D<double> >
-  operator() (const LorentzVector< ROOT::Experimental::PxPyPzE4D<double> > & v) const;
+
+  //LorentzVector< PxPyPzE4D<double> >
+  //operator() (const LorentzVector< PxPyPzE4D<double> > & v) const;
+  __roohost__ __roodevice__ LorentzVector< PxPyPzE4D<double> >
+  operator() (const LorentzVector< PxPyPzE4D<double> > & v) const {
+   // apply bosost to a PxPyPzE LorentzVector
+   Scalar x = v.Px();
+   Scalar y = v.Py();
+   Scalar z = v.Pz();
+   Scalar t = v.E();
+   return LorentzVector< PxPyPzE4D<double> >
+      ( fM[kXX]*x + fM[kXY]*y + fM[kXZ]*z + fM[kXT]*t
+        , fM[kXY]*x + fM[kYY]*y + fM[kYZ]*z + fM[kYT]*t
+        , fM[kXZ]*x + fM[kYZ]*y + fM[kZZ]*z + fM[kZT]*t
+        , fM[kXT]*x + fM[kYT]*y + fM[kZT]*z + fM[kTT]*t );
+}
 
   /**
      Lorentz transformation operation on a LorentzVector in any
      coordinate system
    */
   template <class CoordSystem>
-  LorentzVector<CoordSystem>
+  __roohost__ __roodevice__ LorentzVector<CoordSystem>
   operator() (const LorentzVector<CoordSystem> & v) const {
     LorentzVector< PxPyPzE4D<double> > xyzt(v);
     LorentzVector< PxPyPzE4D<double> > r_xyzt = operator()(xyzt);
@@ -236,7 +276,7 @@ public:
      and the arbitrary vector type must have a constructor taking (x,y,z,t)
    */
   template <class Foreign4Vector>
-  Foreign4Vector
+  __roohost__ __roodevice__ Foreign4Vector
   operator() (const Foreign4Vector & v) const {
     LorentzVector< PxPyPzE4D<double> > xyzt(v);
     LorentzVector< PxPyPzE4D<double> > r_xyzt = operator()(xyzt);
@@ -247,7 +287,7 @@ public:
      Overload operator * for boost on a vector
    */
   template <class A4Vector>
-  inline
+  __roohost__ __roodevice__
   A4Vector operator* (const A4Vector & v) const
   {
     return operator()(v);
@@ -256,29 +296,37 @@ public:
   /**
       Invert a Boost in place
    */
-  void Invert();
+  __roohost__ __roodevice__ void Invert();
 
   /**
       Return inverse of  a boost
    */
-  Boost Inverse() const;
+  __roohost__ __roodevice__ Boost Inverse() const;
 
   /**
      Equality/inequality operators
    */
-  bool operator == (const Boost & rhs) const {
+  __roohost__ __roodevice__ bool operator == (const Boost & rhs) const {
     for (unsigned int i=0; i < 10; ++i) {
       if( fM[i] != rhs.fM[i] )  return false;
     }
     return true;
   }
-  bool operator != (const Boost & rhs) const {
+  __roohost__ __roodevice__ bool operator != (const Boost & rhs) const {
     return ! operator==(rhs);
   }
 
 protected:
 
-  void SetIdentity();
+  //void SetIdentity();
+
+__roohost__ __roodevice__ void SetIdentity() {
+   // set identity boost
+   fM[kXX] = 1.0;  fM[kXY] = 0.0; fM[kXZ] = 0.0; fM[kXT] = 0.0;
+   fM[kYY] = 1.0; fM[kYZ] = 0.0; fM[kYT] = 0.0;
+   fM[kZZ] = 1.0; fM[kZT] = 0.0;
+   fM[kTT] = 1.0;
+}
 
 private:
 
@@ -293,7 +341,7 @@ private:
  */
   // TODO - I/O should be put in the manipulator form
 
-std::ostream & operator<< (std::ostream & os, const Boost & b);
+//std::ostream & operator<< (std::ostream & os, const Boost & b);
 
 
 } //namespace Experimental

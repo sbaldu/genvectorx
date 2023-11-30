@@ -1,8 +1,8 @@
-project(genvectorx )
+project(genvectorx)
 
 cmake_minimum_required(VERSION 3.9)
 
-find_package(ROOT REQUIRED COMPONENTS MathCore ROOTVecOps)
+find_package(ROOT REQUIRED COMPONENTS MathCore ROOTVecOps GenVector)
 if (ROOT_FOUND)
   message(STATUS "ROOT library found")
   #message(STATUS "ROOT_INCLUDE_DIRS: ${ROOT_INCLUDE_DIRS}")
@@ -20,7 +20,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" _BUILD_TYPE_UPPER)
 if (oneapi)
    SET(_sycl_search_dirs ${SYCL_ROOT_DIR} /usr/lib /usr/local/lib /opt/intel/oneapi/compiler/latest/linux)
    find_program(SYCL_COMPILER
-                NAMES icpx dpcpp clang++
+                NAMES icpx clang++
                 HINTS ${_sycl_search_dirs}
                 PATH_SUFFIXES bin)
    find_path(SYCL_INCLUDE_DIR
@@ -31,11 +31,15 @@ if (oneapi)
              NAMES libsycl.so
              HINTS ${_sycl_search_dirs}
              PATH_SUFFIXES lib)
-
-    
+    message(STATUS "_sycl_search_dirs: ${_sycl_search_dirs}")
+    message(STATUS "SYCL_COMPILER: ${SYCL_COMPILER}")
+    message(STATUS "SYCL_INCLUDE_DIR: ${SYCL_INCLUDE_DIR}")
+    message(STATUS "SYCL_LIB_DIR: ${SYCL_LIB_DIR}")
 
     if (syclcuda)
-      set(_fsycl_targets "-fsycl-targets=nvptx64-nvidia-cuda,spir64_x86_64,spir64 -Xsycl-target-backend=nvptx64-nvidia-cuda --cuda-gpu-arch=sm_${CMAKE_CUDA_ARCHITECTURES} --cuda-path=${CUDA_TOOLKIT_ROOT_DIR}")
+      set(_fsycl_targets "-fsycl-targets=nvptx64-nvidia-cuda,spir64_x86_64,spir64 -Xsycl-target-backend=nvptx64-nvidia-cuda --cuda-gpu-arch=sm_${CMAKE_CUDA_ARCHITECTURES} --cuda-path=${CUDA_TOOLKIT_ROOT_DIR} ")
+    elseif (syclamd)
+      set(_fsycl_targets "-fsycl-targets=amdgcn-amd-amdhsa -Xsycl-target-backend=amdgcn-amd-amdhsa --offload-arch=gfx90c ")
     else()
         set(_fsycl_targets "-fsycl-targets=spir64_x86_64,spir64")
     endif()
@@ -260,119 +264,29 @@ if (sycl)
 endif()
 
 
-
 add_library(GenVectorX SHARED
-    inc/SYCLMath/AxisAngle.h
-    inc/SYCLMath/Boost.h
-    inc/SYCLMath/BoostX.h
-    inc/SYCLMath/BoostY.h
-    inc/SYCLMath/BoostZ.h
-    inc/SYCLMath/Cartesian2D.h
-    inc/SYCLMath/Cartesian3D.h
-    inc/SYCLMath/Cylindrical3D.h
-    inc/SYCLMath/CylindricalEta3D.h
-    inc/SYCLMath/DisplacementVector2D.h
-    inc/SYCLMath/DisplacementVector3D.h
-    inc/SYCLMath/EulerAngles.h
-    inc/SYCLMath/GenVector/3DConversions.h
-    inc/SYCLMath/GenVector/3DDistances.h
-    inc/SYCLMath/GenVector/AxisAnglefwd.h
-    inc/SYCLMath/GenVector/AxisAngle.h
-    inc/SYCLMath/GenVector/BitReproducible.h
-    inc/SYCLMath/GenVector/Boostfwd.h
-    inc/SYCLMath/GenVector/Boost.h
-    inc/SYCLMath/GenVector/BoostXfwd.h
-    inc/SYCLMath/GenVector/BoostX.h
-    inc/SYCLMath/GenVector/BoostYfwd.h
-    inc/SYCLMath/GenVector/BoostY.h
-    inc/SYCLMath/GenVector/BoostZfwd.h
-    inc/SYCLMath/GenVector/BoostZ.h
-    inc/SYCLMath/GenVector/Cartesian2Dfwd.h
-    inc/SYCLMath/GenVector/Cartesian2D.h
-    inc/SYCLMath/GenVector/Cartesian3Dfwd.h
-    inc/SYCLMath/GenVector/Cartesian3D.h
-    inc/SYCLMath/GenVector/CoordinateSystemTags.h
-    inc/SYCLMath/GenVector/Cylindrical3Dfwd.h
-    inc/SYCLMath/GenVector/Cylindrical3D.h
-    inc/SYCLMath/GenVector/CylindricalEta3Dfwd.h
-    inc/SYCLMath/GenVector/CylindricalEta3D.h
-    inc/SYCLMath/GenVector/DisplacementVector2Dfwd.h
-    inc/SYCLMath/GenVector/DisplacementVector2D.h
-    inc/SYCLMath/GenVector/DisplacementVector3Dfwd.h
-    inc/SYCLMath/GenVector/DisplacementVector3D.h
-    inc/SYCLMath/GenVector/eta.h
-    inc/SYCLMath/GenVector/etaMax.h
-    inc/SYCLMath/GenVector/EulerAnglesfwd.h
-    inc/SYCLMath/GenVector/EulerAngles.h
-    inc/SYCLMath/GenVector/GenVector_exception.h
-    inc/SYCLMath/GenVector/GenVectorIO.h
-    inc/SYCLMath/GenVector/LorentzRotationfwd.h
-    inc/SYCLMath/GenVector/LorentzRotation.h
-    inc/SYCLMath/GenVector/LorentzVectorfwd.h
-    inc/SYCLMath/GenVector/LorentzVector.h
-    inc/SYCLMath/GenVector/Plane3D.h
-    inc/SYCLMath/GenVector/Polar2Dfwd.h
-    inc/SYCLMath/GenVector/Polar2D.h
-    inc/SYCLMath/GenVector/Polar3Dfwd.h
-    inc/SYCLMath/GenVector/Polar3D.h
-    inc/SYCLMath/GenVector/PositionVector2Dfwd.h
-    inc/SYCLMath/GenVector/PositionVector2D.h
-    inc/SYCLMath/GenVector/PositionVector3Dfwd.h
-    inc/SYCLMath/GenVector/PositionVector3D.h
-    inc/SYCLMath/GenVector/PtEtaPhiE4Dfwd.h
-    inc/SYCLMath/GenVector/PtEtaPhiE4D.h
-    inc/SYCLMath/GenVector/PtEtaPhiM4Dfwd.h
-    inc/SYCLMath/GenVector/PtEtaPhiM4D.h
-    inc/SYCLMath/GenVector/PxPyPzE4Dfwd.h
-    inc/SYCLMath/GenVector/PxPyPzE4D.h
-    inc/SYCLMath/GenVector/PxPyPzM4Dfwd.h
-    inc/SYCLMath/GenVector/PxPyPzM4D.h
-    inc/SYCLMath/GenVector/Quaternionfwd.h
-    inc/SYCLMath/GenVector/Quaternion.h
-    inc/SYCLMath/GenVector/Rotation3Dfwd.h
-    inc/SYCLMath/GenVector/Rotation3D.h
-    inc/SYCLMath/GenVector/RotationXfwd.h
-    inc/SYCLMath/GenVector/RotationX.h
-    inc/SYCLMath/GenVector/RotationYfwd.h
-    inc/SYCLMath/GenVector/RotationY.h
-    inc/SYCLMath/GenVector/RotationZfwd.h
-    inc/SYCLMath/GenVector/RotationZ.h
-    inc/SYCLMath/GenVector/RotationZYXfwd.h
-    inc/SYCLMath/GenVector/RotationZYX.h
-    inc/SYCLMath/GenVector/Transform3D.h
-    inc/SYCLMath/GenVector/Translation3D.h
-    inc/SYCLMath/GenVector/VectorUtil.h
-    inc/SYCLMath/LorentzRotation.h
-    inc/SYCLMath/LorentzVector.h
-    inc/SYCLMath/Plane3D.h
-    inc/SYCLMath/Point2Dfwd.h
-    inc/SYCLMath/Point2D.h
-    inc/SYCLMath/Point3Dfwd.h
-    inc/SYCLMath/Point3D.h
-    inc/SYCLMath/Polar2D.h
-    inc/SYCLMath/Polar3D.h
-    inc/SYCLMath/PositionVector2D.h
-    inc/SYCLMath/PositionVector3D.h
-    inc/SYCLMath/PtEtaPhiE4D.h
-    inc/SYCLMath/PtEtaPhiM4D.h
-    inc/SYCLMath/PxPyPzE4D.h
-    inc/SYCLMath/PxPyPzM4D.h
-    inc/SYCLMath/Quaternion.h
-    inc/SYCLMath/Rotation3D.h
-    inc/SYCLMath/RotationX.h
-    inc/SYCLMath/RotationY.h
-    inc/SYCLMath/RotationZ.h
-    inc/SYCLMath/RotationZYX.h
-    inc/SYCLMath/Transform3D.h
-    inc/SYCLMath/Translation3D.h
-    inc/SYCLMath/Vector2Dfwd.h
-    inc/SYCLMath/Vector2D.h
-    inc/SYCLMath/Vector3Dfwd.h
-    inc/SYCLMath/Vector3D.h
-    inc/SYCLMath/Vector4Dfwd.h
-    inc/SYCLMath/Vector4D.h
-    inc/SYCLMath/VectorUtil.h
+  src/3DConversions.cxx
+  src/BitReproducible.cxx  
+  src/BoostZ.cxx           
+  src/Quaternion.cxx        
+  src/RotationZYX.cxx
+  src/3DDistances.cxx      
+  src/Boost.cxx            
+  src/EulerAngles.cxx      
+  src/QuaternionXaxial.cxx  
+  #src/VecOps.cxx
+  src/AxisAngle.cxx        
+  src/BoostX.cxx           
+  src/LorentzRotation.cxx  
+  src/Rotation3D.cxx        
+  src/VectorUtil.cxx
+  src/AxisAngleXother.cxx  
+  src/BoostY.cxx           
+  src/MathUtil.cxx         
+  src/Rotation3DxAxial.cxx
 )
+
+target_include_directories(GenVectorX INTERFACE inc)
 
 set_target_properties(GenVectorX PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -391,10 +305,38 @@ if ((cuda) OR (sycl))
     target_compile_definitions(VecOps PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING)
   endif()
   if (sycl)
-      set_target_properties(VecOps PROPERTIES LINKER_LANGUAGE CXX)
-      #target_compile_definitions(VecOps PUBLIC ROOT_MATH_SYCL)
-      add_sycl_to_root_target(TARGET VecOps SOURCES src/VecOps.cxx HEADERS inc/SYCLMath/VecOps.h INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ DEPENDENCIES GenVectorX SYCLMath COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+     set_target_properties(VecOps PROPERTIES LINKER_LANGUAGE CXX)
+
+     add_sycl_to_root_target(TARGET VecOps SOURCES src/VecOps.cxx HEADERS inc/SYCLMath/VecOps.h INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ DEPENDENCIES GenVectorX SYCLMath COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+
+      set_target_properties(GenVectorX PROPERTIES LINKER_LANGUAGE CXX)
+
+      add_sycl_to_root_target(TARGET GenVectorX SOURCES 
+      src/3DConversions.cxx
+      src/BitReproducible.cxx  
+      src/BoostZ.cxx           
+      src/Quaternion.cxx        
+      src/RotationZYX.cxx
+      src/3DDistances.cxx      
+      src/Boost.cxx            
+      src/EulerAngles.cxx      
+      src/QuaternionXaxial.cxx  
+      #src/VecOps.cxx
+      src/AxisAngle.cxx        
+      src/BoostX.cxx           
+      src/LorentzRotation.cxx  
+      src/Rotation3D.cxx        
+      src/VectorUtil.cxx
+      src/AxisAngleXother.cxx  
+      src/BoostY.cxx           
+      src/MathUtil.cxx         
+      src/Rotation3DxAxial.cxx
+      INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ 
+      DEPENDENCIES SYCLMath 
+      COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+
   endif()
+      
 
   install(TARGETS GenVectorX SYCLMath VecOps
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

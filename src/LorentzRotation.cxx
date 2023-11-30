@@ -128,15 +128,15 @@ LorentzRotation::Rectify() {
 
    typedef LorentzVector< PxPyPzE4D<Scalar> > FourVector;
    if (fM[kTT] <= 0) {
-      GenVector::Throw (
-                              "LorentzRotation:Rectify(): Non-positive TT component - cannot rectify");
+      //GenVector::Throw (
+      //                        "LorentzRotation:Rectify(): Non-positive TT component - cannot rectify");
       return;
    }
    FourVector t ( fM[kTX], fM[kTY], fM[kTZ], fM[kTT] );
    Scalar m2 = t.M2();
    if ( m2 <= 0 ) {
-      GenVector::Throw (
-                              "LorentzRotation:Rectify(): Non-timelike time row - cannot rectify");
+      //GenVector::Throw (
+      //                        "LorentzRotation:Rectify(): Non-timelike time row - cannot rectify");
       return;
    }
    t /= mysqrt(m2);
@@ -144,9 +144,9 @@ LorentzRotation::Rectify() {
    z = z - z.Dot(t)*t;
    m2 = z.M2();
    if ( m2 >= 0 ) {
-      GenVector::Throw (
-                              "LorentzRotation:Rectify(): Non-spacelike Z row projection - "
-                              "cannot rectify");
+      //(
+      //                        "LorentzRotation:Rectify(): Non-spacelike Z row projection - "
+      //                        "cannot rectify");
       return;
    }
    z /= mysqrt(-m2);

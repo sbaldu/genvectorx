@@ -1,20 +1,20 @@
-#include "ROOT/RVec.hxx"
-#include "TROOT.h"
-#include "Math/PtEtaPhiM4D.h"
-#include "Math/Vector4D.h"
+#include "SYCLMath/PtEtaPhiM4D.h"
+#include "SYCLMath/Vector4D.h"
+#include "SYCLMath/VecOps.h"
 #include <assert.h>
 #include <chrono>
 #include <vector>
 
 #ifdef SINGLE_PRECISION
-using arithmetic_type = float;
+using Scalar = float;
 #else
-using arithmetic_type = double;
+using Scalar = double;
 #endif
 
-using vec4d =
-    ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<arithmetic_type>>;
+using LVector =
+    ROOT::Experimental::LorentzVector<ROOT::Experimental::PtEtaPhiM4D<Scalar>>;
 
+<<<<<<< HEAD
 template <class T>
 using Vector = ROOT::RVec<T>;
 
@@ -46,6 +46,12 @@ Vector<arithmetic_type> InvariantMasses(const Vector<vec4d> v1,
 Vector<vec4d> GenVectors(int n)
 {
   Vector<vec4d> vectors(n);
+=======
+
+LVector* GenVectors(int n)
+{
+  LVector  *vectors = new LVector[n];
+>>>>>>> boost
 
   // generate n -4 momentum quantities
   for (int i = 0; i < n; ++i)
@@ -73,7 +79,10 @@ int main(int argc, char **argv)
   std::cout << "SINGLE_PRECISION defined \n";
 #endif
 
+<<<<<<< HEAD
   ROOT::EnableImplicitMT();
+=======
+>>>>>>> boost
 
   std::string arg1 = argv[1];
   std::size_t pos;
@@ -85,9 +94,8 @@ int main(int argc, char **argv)
   auto u_vectors = GenVectors(N);
   auto v_vectors = GenVectors(N);
 
-  Vector<arithmetic_type> eta1(N, 1.), eta2(N, 1.), phi1(N, 1.), phi2(N, 1.),
-      pt1(N, 1.), pt2(N, 1.), mass1(N, 1.), mass2(N, 1.);
 
+<<<<<<< HEAD
   Vector<arithmetic_type> masses =
       InvariantMasses(u_vectors, v_vectors, N, local_size);
 
@@ -105,9 +113,15 @@ int main(int argc, char **argv)
             .count() *
         1e-6;
     std::cout << "RVec cpu time " << duration << " (s)" << std::endl;
+=======
+  Scalar *masses = new Scalar(N);
+
+  for (size_t i = 0; i < nruns; i++)
+  {
+    masses = ROOT::Experimental::InvariantMasses<Scalar, LVector>(u_vectors, v_vectors, N);
+>>>>>>> boost
   }
   assert((std::abs(masses[0] - 2.) <= 1e-5));
-  assert((std::abs(masses2[0] - 2.) <= 1e-5));
 
   return 0;
 }
