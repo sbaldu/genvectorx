@@ -105,7 +105,7 @@ def collect_results(testname, platform, nruns):
         savez_dict['stdacpp'] = stdacpp
         savez_dict['Sstdacpp'] = Sstdacpp
 
-        if (platform == "cuda"):
+        if ("cuda" in platform):
             timecuda, stdcuda = run_benchmark(buildcuda, sizes, testname = testname, nruns = nruns, btype = 'cuda')
             Stimecuda, Sstdcuda = run_benchmark(buildcuda, Ssizes, nruns = nruns, testname = "S"+testname, btype = 'cuda')
             savez_dict['timecuda'] = timecuda
