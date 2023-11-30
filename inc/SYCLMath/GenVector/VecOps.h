@@ -206,31 +206,36 @@ namespace ROOT
 #ifdef ROOT_MEAS_TIMING
       auto start = std::chrono::system_clock::now();
 #endif
+      {
+        auto execution_range = sycl::nd_range<1>{
+            sycl::range<1>{((N + local_size - 1) / local_size) * local_size},
+            sycl::range<1>{local_size}};
 
-      auto execution_range = sycl::nd_range<1>{
-          sycl::range<1>{((N + local_size - 1) / local_size) * local_size},
-          sycl::range<1>{local_size}};
+        sycl::buffer<LVector, 1> lv_sycl(lv, sycl::range<1>(N));
+        sycl::buffer<LVector, 1> lvb_sycl(lvb, sycl::range<1>(N));
+        sycl::buffer<Boost, 1> bst_sycl(&bst, sycl::range<1>(1));
 
-      queue.memcpy(d_lv, lv, N * sizeof(LVector));
-      queue.memcpy(d_bst, &bst, sizeof(Boost));
+        queue.submit([&](sycl::handler &cgh)
+                      {
+          // Get handles to SYCL buffers.
+          sycl::accessor lv_acc{lv_sycl, cgh, sycl::range<1>(N), sycl::read_only};
+          sycl::accessor lvb_acc{lvb_sycl, cgh, sycl::range<1>(N), sycl::write_only};
+          sycl::accessor bst_acc{bst_sycl, cgh, sycl::range<1>(1), sycl::read_write}; 
+          
+          cgh.parallel_for(execution_range,
+                                          [=](sycl::nd_item<1> item)
+                                          {
+                                            size_t id = item.get_global_id().get(0);
+                                            if (id < N)
+                                            {
+                                              Boost bst_loc = bst_acc[0];                 //.operator();
+                                              lvb_acc[id] = bst_loc.operator()(lv_acc[id]); // bst(lv[id]);
+                                            }
+                                          }
 
-      queue.submit([&](sycl::handler &cgh)
-                   { cgh.parallel_for(execution_range,
-                                      [=](sycl::nd_item<1> item)
-                                      {
-                                        size_t id = item.get_global_id().get(0);
-                                        if (id < N)
-                                        {
-                                          Boost bst_loc = d_bst[0];                   //.operator();
-                                          d_lvb[id] = bst_loc.operator()(d_lv[id]); // bst(lv[id]);
-                                        }
-                                      }
-
-                     ); });
-
-      queue.memcpy(lvb, d_lvb, N * sizeof(LVector));
+                        ); });
+      }
       queue.wait();
-
 #ifdef ROOT_MEAS_TIMING
       auto end = std::chrono::system_clock::now();
       auto duration =
@@ -239,11 +244,6 @@ namespace ROOT
           1e-6;
       std::cout << "sycl time " << duration << " (s)" << std::endl;
 #endif
-
-      sycl::free(d_lv, queue);
-      sycl::free(d_lvb, queue);
-      sycl::free(d_bst, queue);
-      queue.wait();
 
       return lvb;
     }
@@ -274,7 +274,8 @@ namespace ROOT
     class InvariantMassesKernel
     {
     public:
-      InvariantMassesKernel(AccLVector acc_v1, AccLVector acc_v2, AccScalar acc_m, size_t n)
+      InvariantMassesKernel(AccLVector acc_v1, AccLVector acc_v2, AccScalar acc_m,
+                            size_t n)
           : v1_acc(acc_v1), v2_acc(acc_v2), m_acc(acc_m), N(n) {}
 
       void operator()(sycl::nd_item<1> item) const
@@ -296,31 +297,39 @@ namespace ROOT
 
     template <class Scalar, class LVector>
     Scalar *InvariantMasses(LVector *v1, LVector *v2, const size_t N,
-                            const size_t local_size,
-                            sycl::queue queue)
+                            const size_t local_size, sycl::queue queue)
     {
 
       Scalar *invMasses = new Scalar[N];
-
-      LVector *d_v1 = sycl::malloc_device<LVector>(N, queue);
-      LVector *d_v2 = sycl::malloc_device<LVector>(N, queue);
-      Scalar *d_invMasses = sycl::malloc_device<Scalar>(N, queue);
 
 #ifdef ROOT_MEAS_TIMING
       auto start = std::chrono::system_clock::now();
 #endif
 
-      auto execution_range = sycl::nd_range<1>{
-          sycl::range<1>{((N + local_size - 1) / local_size) * local_size},
-          sycl::range<1>{local_size}};
+      { // Start of scope, ensures data copied back to host
+        // Create device buffers. The memory is managed by SYCL so we should NOT
+        // access these buffers directly.
+        auto execution_range = sycl::nd_range<1>{
+            sycl::range<1>{((N + local_size - 1) / local_size) * local_size},
+            sycl::range<1>{local_size}};
 
-      queue.memcpy(d_v1, v1, N * sizeof(LVector));
-      queue.memcpy(d_v2, v2, N * sizeof(LVector));
+        sycl::buffer<LVector, 1> v1_sycl(v1, sycl::range<1>(N));
+        sycl::buffer<LVector, 1> v2_sycl(v2, sycl::range<1>(N));
+        sycl::buffer<Scalar, 1> m_sycl(invMasses, sycl::range<1>(N));
 
-      queue.submit([&](sycl::handler &cgh)
-                   { cgh.parallel_for(execution_range, InvariantMassesKernel<Scalar *, LVector *>(d_v1, d_v2, d_invMasses, N)); });
+        queue.submit([&](sycl::handler &cgh)
+                     {
+      // Get handles to SYCL buffers.
+      sycl::accessor v1_acc{v1_sycl, cgh, sycl::range<1>(N), sycl::read_only};
+      sycl::accessor v2_acc{v2_sycl, cgh, sycl::range<1>(N), sycl::read_only};
+      sycl::accessor m_acc{m_sycl, cgh, sycl::range<1>(N), sycl::write_only};
+      // auto v1_acc = v1_sycl.get_access<mode::read>(cgh);
+      // auto v2_acc = v2_sycl.get_access<mode::read>(cgh);
+      // auto m_acc = m_sycl.get_access<mode::write>(cgh);
 
-      queue.memcpy(invMasses, d_invMasses, N * sizeof(Scalar));
+      cgh.parallel_for(execution_range,
+                       InvariantMassesKernel(v1_acc, v2_acc, m_acc, N)); });
+      } // end of scope, ensures data copied back to host
       queue.wait();
 
 #ifdef ROOT_MEAS_TIMING
@@ -331,12 +340,6 @@ namespace ROOT
           1e-6;
       std::cout << "sycl time " << duration << " (s)" << std::endl;
 #endif
-
-      sycl::free(d_v1, queue);
-      sycl::free(d_v2, queue);
-      sycl::free(d_invMasses, queue);
-      queue.wait();
-
       return invMasses;
     }
 
