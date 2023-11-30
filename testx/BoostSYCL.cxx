@@ -1,4 +1,4 @@
-#include "SYCLMath/GenVector/MathUtil.h"
+
 #include "SYCLMath/Boost.h"
 #include "SYCLMath/Vector4D.h"
 #include <chrono>
@@ -323,8 +323,7 @@ LVector *ApplyBoost(LVector *lv, Boost bst, sycl::queue queue, const size_t N,
     sycl::buffer<LVector, 1> lvb_sycl(lvb, sycl::range<1>(N));
     sycl::buffer<Boost, 1> bst_sycl(&bst, sycl::range<1>(1));
 
-    queue.submit([&](sycl::handler &cgh)
-                 {
+    queue.submit([&](sycl::handler &cgh) {
       // Get handles to SYCL buffers.
       sycl::accessor lv_acc{lv_sycl, cgh, sycl::range<1>(N), sycl::read_only};
       sycl::accessor lvb_acc{lvb_sycl, cgh, sycl::range<1>(N),
@@ -357,14 +356,12 @@ LVector *ApplyBoost(LVector *lv, Boost bst, sycl::queue queue, const size_t N,
   return lvb;
 }
 
-LVector *GenVectors(int n)
-{
+LVector *GenVectors(int n) {
 
   LVector *vectors = new LVector[n];
 
   // generate n -4 momentum quantities
-  for (int i = 0; i < n; ++i)
-  {
+  for (int i = 0; i < n; ++i) {
     // fill vectors
     vectors[i] = {1., 1., 1., 1.};
   }
@@ -381,8 +378,7 @@ bool print_if_false(const bool assertion, size_t i)
   return assertion;
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 
   std::string arg1 = argv[1];
   std::size_t pos;
