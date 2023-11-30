@@ -37,7 +37,7 @@ namespace ROOT
       int id = blockDim.x * blockIdx.x + threadIdx.x;
       if (id < N)
       {
-        Boost bst_loc = bst[0];                        //.operator();
+        Boost bst_loc = bst[0];               //.operator();
         lvb[id] = bst_loc.operator()(lv[id]); // bst(lv[id]);
       }
     }
@@ -199,41 +199,36 @@ namespace ROOT
 
       LVector *lvb = new LVector[N];
 
+      LVector *d_lv = sycl::malloc_device<LVector>(N, queue);
+      LVector *d_lvb = sycl::malloc_device<LVector>(N, queue);
+      Boost *d_bst = sycl::malloc_device<Boost>(1, queue);
+
 #ifdef ROOT_MEAS_TIMING
       auto start = std::chrono::system_clock::now();
 #endif
 
-      { // Start of scope, ensures data copied back to host
-        // Create device buffers. The memory is managed by SYCL so we should NOT
-        // access these buffers directly.
-        auto execution_range = sycl::nd_range<1>{
-            sycl::range<1>{((N + local_size - 1) / local_size) * local_size},
-            sycl::range<1>{local_size}};
+      auto execution_range = sycl::nd_range<1>{
+          sycl::range<1>{((N + local_size - 1) / local_size) * local_size},
+          sycl::range<1>{local_size}};
 
-        sycl::buffer<LVector, 1> lv_sycl(lv, sycl::range<1>(N));
-        sycl::buffer<LVector, 1> lvb_sycl(lvb, sycl::range<1>(N));
-        sycl::buffer<Boost, 1> bst_sycl(&bst, sycl::range<1>(1));
+      queue.memcpy(d_lv, lv, N * sizeof(LVector));
+      queue.memcpy(d_bst, &bst, sizeof(Boost));
 
-        queue.submit([&](sycl::handler &cgh)
-                     {
-      // Get handles to SYCL buffers.
-      sycl::accessor lv_acc{lv_sycl, cgh, sycl::range<1>(N), sycl::read_only};
-      sycl::accessor lvb_acc{lvb_sycl, cgh, sycl::range<1>(N),
-                             sycl::write_only};
-      sycl::accessor bst_acc{bst_sycl, cgh, sycl::range<1>(1),
-                             sycl::read_write};
+      queue.submit([&](sycl::handler &cgh)
+                   { cgh.parallel_for(execution_range,
+                                      [=](sycl::nd_item<1> item)
+                                      {
+                                        size_t id = item.get_global_id().get(0);
+                                        if (id < N)
+                                        {
+                                          Boost bst_loc = d_bst[0];                   //.operator();
+                                          d_lvb[id] = bst_loc.operator()(d_lv[id]); // bst(lv[id]);
+                                        }
+                                      }
 
-      cgh.parallel_for(execution_range,
-                       [=](sycl::nd_item<1> item) {
-                         size_t id = item.get_global_id().get(0);
-                         if (id < N) {
-                          Boost bst_loc = bst_acc[0];//.operator();
-                           lvb_acc[id] = bst_loc.operator()(lv_acc[id]);//bst(lv[id]);
-                         }
-                       }
+                     ); });
 
-      ); });
-      } // end of scope, ensures data copied back to host
+      queue.memcpy(lvb, d_lvb, N * sizeof(LVector));
       queue.wait();
 
 #ifdef ROOT_MEAS_TIMING
@@ -244,6 +239,11 @@ namespace ROOT
           1e-6;
       std::cout << "sycl time " << duration << " (s)" << std::endl;
 #endif
+
+      sycl::free(d_lv, queue);
+      sycl::free(d_lvb, queue);
+      sycl::free(d_bst, queue);
+      queue.wait();
 
       return lvb;
     }
@@ -343,7 +343,7 @@ namespace ROOT
 #else
 
     template <class Scalar, class LVector>
-    Scalar * InvariantMasses(const LVector *v1, const LVector *v2, const size_t N)
+    Scalar *InvariantMasses(const LVector *v1, const LVector *v2, const size_t N)
     {
       Scalar *invMasses = new Scalar[N];
       LVector w;
