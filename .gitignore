@@ -12,3 +12,9 @@ plots/*.npz
 
 # nsys report
 nsysreport
+
+# doc
+doc
+
+# test
+test
