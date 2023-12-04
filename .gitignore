@@ -1,0 +1,20 @@
+# building
+build*
+
+# editor
+.vscode
+
+# ipynb_checkpoints
+plots/.ipynb_checkpoints
+
+# timing results
+plots/*.npz
+
+# nsys report
+nsysreport
+
+# doc
+doc
+
+# test
+test
