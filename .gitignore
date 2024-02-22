@@ -9,6 +9,7 @@ plots/.ipynb_checkpoints
 
 # timing results
 plots/*.npz
+plots/*.png
 
 # nsys results
 plots/20*
