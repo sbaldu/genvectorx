@@ -1,6 +1,9 @@
 # building
 build*
 
+#output
+out
+
 # editor
 .vscode
 
