@@ -45,7 +45,7 @@ if (oneapi)
     endif()
 
     set(SYCL_COMPILER_FLAGS "-fPIC -fsycl -fsycl-unnamed-lambda -sycl-std=2020 ${_fsycl_targets} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${_BUILD_TYPE_UPPER}}")
-    message(STATUS "SYCL compiler flags: ${SYCL_COMPILER_FLAGS}")
+    message(DEBUG "SYCL compiler flags: ${SYCL_COMPILER_FLAGS}")
     separate_arguments(SYCL_COMPILER_FLAGS NATIVE_COMMAND ${SYCL_COMPILER_FLAGS})
 
     if (SYCL_COMPILER)
@@ -71,8 +71,6 @@ if (oneapi)
       foreach(src ${ARG_SOURCES})
         set(_output_path ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${ARG_TARGET}.dir/${src}${CMAKE_CXX_OUTPUT_EXTENSION})
         list(APPEND _outputs ${_output_path})
-
-        message(STATUS "COMPILE_DEFINITIONS_exe ${_COMPILE_DEFINITIONS} ${ARG_COMPILE_DEFINITIONS} ${ARG_SOURCES}")
 
         add_custom_command(OUTPUT ${_output_path}
                             COMMAND ${SYCL_COMPILER}
