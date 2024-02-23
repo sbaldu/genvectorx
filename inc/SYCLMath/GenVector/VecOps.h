@@ -198,8 +198,8 @@ namespace ROOT
     class ApplyBoostKernel
     {
     public:
-      ApplyBoostKernel(AccLVector *lv, AccBoost bst, AccLVector *lvb, size_t n)
-          : lv_acc(lv), bst_acc(bst), lv_acc(lvb),  N(n) {}
+      ApplyBoostKernel(AccLVector lv, AccBoost bst, AccLVector lvb, size_t n)
+          : lv_acc(lv), bst_acc(bst), lvb_acc(lvb),  N(n) {}
 
       void operator()(sycl::nd_item<1> item) const
       {
@@ -252,7 +252,7 @@ namespace ROOT
           sycl::accessor d_bst{bst_sycl, cgh, sycl::range<1>(1), sycl::read_write}; 
 #endif
           cgh.parallel_for(execution_range,
-                                         ApplyBoostKernel(d_lv, d_bst, d_lvb, N)); 
+                           ApplyBoostKernel(d_lv, d_bst, d_lvb, N)); 
 
         });
 
