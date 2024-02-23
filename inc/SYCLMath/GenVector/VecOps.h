@@ -190,6 +190,7 @@ namespace ROOT
 
       return invMasses;
     }
+
 #elif defined(ROOT_MATH_SYCL)
 
     template <class LVector, class Boost>
@@ -292,9 +293,10 @@ namespace ROOT
       void operator()(sycl::nd_item<1> item) const
       {
         size_t id = item.get_global_id().get(0);
+        if (id < N){     
           auto w = v1_acc[id] + v2_acc[id];
           m_acc[id] = w.mass();
-
+        }
       }
 
     private:
