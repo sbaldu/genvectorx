@@ -125,7 +125,6 @@ if (oneapi)
         list(REMOVE_DUPLICATES _inc_dirs)
         list(TRANSFORM _inc_dirs PREPEND -I)
       endif()
-      # set(_inc_dirs "-I$<JOIN:$<TARGET_PROPERTY:INCLUDE_DIRECTORIES>, -I>")
       list(APPEND _inc_dirs -I${SYCL_INCLUDE_DIR})
       list(APPEND _inc_dirs -I${SYCL_INCLUDE_DIR}/sycl)
 
@@ -264,7 +263,6 @@ else()
   set_target_properties(SYCLMath PROPERTIES LINKER_LANGUAGE CXX)
 endif()
 
-
 if (sycl)
     #set_target_properties(GenVector PROPERTIES LINKER_LANGUAGE CXX)
     target_compile_definitions(SYCLMath PUBLIC ROOT_MATH_SYCL)
@@ -283,6 +281,9 @@ if (sycl)
                             COMPILE_DEFINITIONS ${sycl_compile_list} )
 endif()
 
+if (timing)
+  list(APPEND compile_list ROOT_MEAS_TIMING)
+endif()
 
 add_library(GenVectorX SHARED
   src/3DConversions.cxx
@@ -311,6 +312,9 @@ target_include_directories(GenVectorX INTERFACE inc)
 set_target_properties(GenVectorX PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(GenVectorX PUBLIC SYCLMath)
+
+target_compile_definitions(GenVectorX PUBLIC ${compile_list})
+
 
 if ((cuda) OR (sycl))
   add_library(VecOps SHARED

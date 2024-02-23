@@ -5,6 +5,9 @@ list(APPEND sycl_compile_list_single SINGLE_PRECISION)
 set(cuda_compile_list_single "${cuda_compile_list}")
 list(APPEND cuda_compile_list_single SINGLE_PRECISION)
 
+set(compile_list_single "${compile_list}")
+list(APPEND compile_list_single SINGLE_PRECISION)
+
 
 if (oneapi)
   add_executable(InvariantMassesSYCL InvariantMassesSYCL.cxx)
@@ -111,15 +114,15 @@ if (cuda)
 endif()
 
 add_executable(InvariantMasses InvariantMasses.cxx)
-target_compile_definitions(InvariantMasses PUBLIC ROOT_MEAS_TIMING)
+target_compile_definitions(InvariantMasses PUBLIC ${compile_list})
 
 add_executable(Boost Boost.cxx)
-target_compile_definitions(Boost PUBLIC ROOT_MEAS_TIMING)
+target_compile_definitions(Boost PUBLIC ${compile_list})
 
 if (single_precision)
   add_executable(SInvariantMasses InvariantMasses.cxx)
-  target_compile_definitions(SInvariantMasses PUBLIC SINGLE_PRECISION ROOT_MEAS_TIMING)
+  target_compile_definitions(SInvariantMasses PRIVATE ${compile_list_single})
 
   add_executable(SBoost Boost.cxx)
-  target_compile_definitions(SBoost PUBLIC SINGLE_PRECISION ROOT_MEAS_TIMING)
+  target_compile_definitions(SBoost PRIVATE ${compile_list_single})
 endif()
