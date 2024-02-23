@@ -256,7 +256,7 @@ template <class Scalar> inline Scalar myatan2(Scalar x, Scalar y) {
   return std::atan2(x, y);
 }
 
-template <class Scalar> Scalar myatan(Scalar x) { return std::atan(x); }
+template <class Scalar> inline Scalar myatan(Scalar x) { return std::atan(x); }
 
 template <class Scalar> inline Scalar mysqrt(Scalar x) { return std::sqrt(x); }
 
