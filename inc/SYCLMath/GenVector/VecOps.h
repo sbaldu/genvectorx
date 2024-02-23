@@ -193,6 +193,30 @@ namespace ROOT
 
 #elif defined(ROOT_MATH_SYCL)
 
+
+    template <class AccLVector, class AccBoost>
+    class ApplyBoostKernel
+    {
+    public:
+      ApplyBoostKernel(AccLVector *lv, AccBoost bst, AccLVector *lvb, size_t n)
+          : lv_acc(lv), bst_acc(bst), lv_acc(lvb),  N(n) {}
+
+      void operator()(sycl::nd_item<1> item) const
+      {
+        size_t id = item.get_global_id().get(0);
+        if (id < N){     
+          auto bst_loc = bst_acc[0];                 //.operator();
+          lvb_acc[id] = bst_loc.operator()(lv_acc[id]); // bst(lv[id]);
+        }
+      }
+
+    private:
+      AccLVector lv_acc;
+      AccLVector lvb_acc;
+      AccBoost bst_acc;
+      size_t N;
+    };
+
     template <class LVector, class Boost>
     LVector *ApplyBoost(LVector *lv, Boost bst, sycl::queue queue, const size_t N,
                         const size_t local_size)
