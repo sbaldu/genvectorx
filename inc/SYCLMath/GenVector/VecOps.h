@@ -292,11 +292,9 @@ namespace ROOT
       void operator()(sycl::nd_item<1> item) const
       {
         size_t id = item.get_global_id().get(0);
-        if (id < N)
-        {
           auto w = v1_acc[id] + v2_acc[id];
           m_acc[id] = w.mass();
-        }
+
       }
 
     private:
@@ -317,9 +315,6 @@ namespace ROOT
       auto start = std::chrono::system_clock::now();
 #endif
 
-      { // Start of scope, ensures data copied back to host
-        // Create device buffers. The memory is managed by SYCL so we should NOT
-        // access these buffers directly.
         auto execution_range = sycl::nd_range<1>{
             sycl::range<1>{((N + local_size - 1) / local_size) * local_size},
             sycl::range<1>{local_size}};
@@ -348,13 +343,9 @@ namespace ROOT
         queue.wait(); 
 #ifndef SYCL_BUFFERS
         queue.memcpy(invMasses, d_invMasses, N * sizeof(Scalar));
-        // sycl::free(d_v1, queue);
-        // sycl::free(d_v2, queue);
-        // sycl::free(d_invMasses, queue);
+        queue.wait(); 
 #endif
-      } // end of scope, ensures data copied back to host
-      
-
+        
 #ifdef ROOT_MEAS_TIMING
       auto end = std::chrono::system_clock::now();
       auto duration =
@@ -363,6 +354,13 @@ namespace ROOT
           1e-6;
       std::cout << "sycl time " << duration << " (s)" << std::endl;
 #endif
+
+#ifndef SYCL_BUFFERS
+        sycl::free(d_v1, queue);
+        sycl::free(d_v2, queue);
+        sycl::free(d_invMasses, queue);
+#endif
+
       return invMasses;
     }
 

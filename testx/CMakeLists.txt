@@ -1,30 +1,55 @@
+
+set(sycl_compile_list_single "${sycl_compile_list}")
+list(APPEND sycl_compile_list_single SINGLE_PRECISION)
+
+message(STATUS "sycl_compile_list ${sycl_compile_list}")
+message(STATUS "sycl_compile_list_single ${sycl_compile_list_single}")
+
 if (oneapi)
   add_executable(InvariantMassesSYCL InvariantMassesSYCL.cxx)
   target_link_options(InvariantMassesSYCL PUBLIC -E)
-  add_sycl_to_root_target_exe(TARGET InvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
+  add_sycl_to_root_target_exe(TARGET InvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx 
+                              DEPENDENCIES GenVectorX SYCLMath VecOps 
+                              INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc 
+                              COMPILE_DEFINITIONS ${sycl_compile_list})
 
-  add_executable(ChangeCoordSYCL ChangeCoordSYCL.cxx)
-  target_link_options(ChangeCoordSYCL PUBLIC -E)
-  add_sycl_to_root_target_exe(TARGET ChangeCoordSYCL SOURCES ChangeCoordSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
+  # add_executable(ChangeCoordSYCL ChangeCoordSYCL.cxx)
+  # target_link_options(ChangeCoordSYCL PUBLIC -E)
+  # add_sycl_to_root_target_exe(TARGET ChangeCoordSYCL SOURCES ChangeCoordSYCL.cxx 
+  #                             DEPENDENCIES GenVectorX SYCLMath VecOps 
+  #                             INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc 
+  #                             COMPILE_DEFINITIONS ${sycl_compile_list})
  
 
   add_executable(BoostSYCL BoostSYCL.cxx)
   target_link_options(BoostSYCL PUBLIC -E)
-  add_sycl_to_root_target_exe(TARGET BoostSYCL SOURCES BoostSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
+  add_sycl_to_root_target_exe(TARGET BoostSYCL SOURCES BoostSYCL.cxx 
+                              DEPENDENCIES GenVectorX SYCLMath VecOps 
+                              INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc 
+                              COMPILE_DEFINITIONS ${sycl_compile_list})
 
   if (single_precision)
     add_executable(SInvariantMassesSYCL InvariantMassesSYCL.cxx)
     target_link_options(SInvariantMassesSYCL PUBLIC -E)
-    add_sycl_to_root_target_exe(TARGET SInvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING SINGLE_PRECISION)
+    add_sycl_to_root_target_exe(TARGET SInvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx 
+                                DEPENDENCIES GenVectorX SYCLMath VecOps 
+                                INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc 
+                                COMPILE_DEFINITIONS ${sycl_compile_list_single})
 
-    add_executable(SChangeCoordSYCL ChangeCoordSYCL.cxx)
-    target_link_options(SChangeCoordSYCL PUBLIC -E)
-    add_sycl_to_root_target_exe(TARGET SChangeCoordSYCL SOURCES ChangeCoordSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING SINGLE_PRECISION)
+    # add_executable(SChangeCoordSYCL ChangeCoordSYCL.cxx)
+    # target_link_options(SChangeCoordSYCL PUBLIC -E)
+    # add_sycl_to_root_target_exe(TARGET SChangeCoordSYCL SOURCES ChangeCoordSYCL.cxx 
+    #                             DEPENDENCIES GenVectorX SYCLMath VecOps 
+    #                             INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc 
+    #                             COMPILE_DEFINITIONS ${sycl_compile_list_single})
    
   
     add_executable(SBoostSYCL BoostSYCL.cxx)
     target_link_options(SBoostSYCL PUBLIC -E)
-    add_sycl_to_root_target_exe(TARGET SBoostSYCL SOURCES BoostSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING SINGLE_PRECISION)
+    add_sycl_to_root_target_exe(TARGET SBoostSYCL SOURCES BoostSYCL.cxx 
+                                DEPENDENCIES GenVectorX SYCLMath VecOps 
+                                INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc 
+                                COMPILE_DEFINITIONS ${sycl_compile_list_single})
   
     endif()
 
@@ -32,27 +57,39 @@ endif()
 
 if (adaptivecpp)
   add_executable(InvariantMassesSYCL InvariantMassesSYCL.cxx)
-  add_sycl_to_root_target(TARGET InvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
+  add_sycl_to_root_target(TARGET InvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx 
+                          DEPENDENCIES GenVectorX SYCLMath VecOps 
+                          INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc 
+                          COMPILE_DEFINITIONS ${sycl_compile_list})
 
-  add_executable(ChangeCoordSYCL ChangeCoordSYCL.cxx)
-  add_sycl_to_root_target(TARGET ChangeCoordSYCL SOURCES ChangeCoordSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
+  # add_executable(ChangeCoordSYCL ChangeCoordSYCL.cxx)
+  # add_sycl_to_root_target(TARGET ChangeCoordSYCL SOURCES ChangeCoordSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
   
 
   add_executable(BoostSYCL BoostSYCL.cxx)
-  add_sycl_to_root_target(TARGET BoostSYCL SOURCES BoostSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING)
+  add_sycl_to_root_target(TARGET BoostSYCL SOURCES BoostSYCL.cxx 
+                          DEPENDENCIES GenVectorX SYCLMath VecOps 
+                          INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc 
+                          COMPILE_DEFINITIONS ${sycl_compile_list})
   
 
   if (single_precision)
     add_executable(SInvariantMassesSYCL InvariantMassesSYCL.cxx)
-    add_sycl_to_root_target(TARGET SInvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING SINGLE_PRECISION) 
+    add_sycl_to_root_target(TARGET SInvariantMassesSYCL SOURCES InvariantMassesSYCL.cxx 
+                            DEPENDENCIES GenVectorX SYCLMath VecOps 
+                            INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc 
+                            COMPILE_DEFINITIONS ${sycl_compile_list_single}) 
 
 
-    add_executable(SChangeCoordSYCL ChangeCoordSYCL.cxx)
-    add_sycl_to_root_target(TARGET SChangeCoordSYCL SOURCES ChangeCoordSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING SINGLE_PRECISION)
+    # add_executable(SChangeCoordSYCL ChangeCoordSYCL.cxx)
+    # add_sycl_to_root_target(TARGET SChangeCoordSYCL SOURCES ChangeCoordSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING SINGLE_PRECISION)
   
 
     add_executable(SBoostSYCL BoostSYCL.cxx)
-    add_sycl_to_root_target(TARGET SBoostSYCL SOURCES BoostSYCL.cxx DEPENDENCIES GenVectorX SYCLMath VecOps INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING SINGLE_PRECISION)
+    add_sycl_to_root_target(TARGET SBoostSYCL SOURCES BoostSYCL.cxx 
+                            DEPENDENCIES GenVectorX SYCLMath VecOps 
+                            INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc 
+                            COMPILE_DEFINITIONS ${sycl_compile_list_single})
 
   endif()
 
@@ -67,12 +104,12 @@ if (cuda)
   set_target_properties(InvariantMassesCUDA PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   target_compile_definitions(InvariantMassesCUDA PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING)
 
-  add_executable(ChangeCoordCUDA ChangeCoordCUDA.cu)
-  set_target_properties(ChangeCoordCUDA PROPERTIES LINKER_LANGUAGE CUDA)
-  target_link_libraries(ChangeCoordCUDA PUBLIC GenVectorX SYCLMath VecOps)
-  target_compile_options(ChangeCoordCUDA PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
-  set_target_properties(ChangeCoordCUDA PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-  target_compile_definitions(ChangeCoordCUDA PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING)
+  # add_executable(ChangeCoordCUDA ChangeCoordCUDA.cu)
+  # set_target_properties(ChangeCoordCUDA PROPERTIES LINKER_LANGUAGE CUDA)
+  # target_link_libraries(ChangeCoordCUDA PUBLIC GenVectorX SYCLMath VecOps)
+  # target_compile_options(ChangeCoordCUDA PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
+  # set_target_properties(ChangeCoordCUDA PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+  # target_compile_definitions(ChangeCoordCUDA PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING)
 
   add_executable(BoostCUDA BoostCUDA.cu)
   set_target_properties(BoostCUDA PROPERTIES LINKER_LANGUAGE CUDA)
@@ -90,12 +127,12 @@ if (cuda)
     target_compile_definitions(SInvariantMassesCUDA PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING SINGLE_PRECISION)
 
 
-    add_executable(SChangeCoordCUDA ChangeCoordCUDA.cu)
-    set_target_properties(SChangeCoordCUDA PROPERTIES LINKER_LANGUAGE CUDA)
-    target_link_libraries(SChangeCoordCUDA PUBLIC GenVectorX SYCLMath VecOps)
-    target_compile_options(SChangeCoordCUDA PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
-    set_target_properties(SChangeCoordCUDA PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-    target_compile_definitions(SChangeCoordCUDA PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING SINGLE_PRECISION)
+    # add_executable(SChangeCoordCUDA ChangeCoordCUDA.cu)
+    # set_target_properties(SChangeCoordCUDA PROPERTIES LINKER_LANGUAGE CUDA)
+    # target_link_libraries(SChangeCoordCUDA PUBLIC GenVectorX SYCLMath VecOps)
+    # target_compile_options(SChangeCoordCUDA PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
+    # set_target_properties(SChangeCoordCUDA PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    # target_compile_definitions(SChangeCoordCUDA PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING SINGLE_PRECISION)
   
     add_executable(SBoostCUDA BoostCUDA.cu)
     set_target_properties(SBoostCUDA PROPERTIES LINKER_LANGUAGE CUDA)

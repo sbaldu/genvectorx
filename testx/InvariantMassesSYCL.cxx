@@ -62,6 +62,9 @@ int main(int argc, char **argv)
 #ifdef SINGLE_PRECISION
   std::cout << "SINGLE_PRECISION defined \n";
 #endif
+#ifdef SYCL_BUFFER
+  std::cout << "SYCL_BUFFER defined \n";
+#endif
 
   static sycl::queue queue{sycl::default_selector_v};
 
@@ -74,8 +77,9 @@ int main(int argc, char **argv)
   for (size_t i = 0; i < nruns; i++)
     masses = ROOT::Experimental::InvariantMasses<arithmetic_type, vec4d>(u_vectors, v_vectors, N, local_size, queue);
 
-  for (size_t i = 0; i < N; i++)
+  for (size_t i = 0; i < N; i++){
     assert(print_if_false((std::abs(masses[i] - 2.) <= 1e-5), i));
+  }
 
   delete[] u_vectors;
   delete[] v_vectors;

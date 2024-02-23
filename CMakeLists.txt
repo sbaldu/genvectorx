@@ -72,6 +72,8 @@ if (oneapi)
         set(_output_path ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${ARG_TARGET}.dir/${src}${CMAKE_CXX_OUTPUT_EXTENSION})
         list(APPEND _outputs ${_output_path})
 
+        message(STATUS "COMPILE_DEFINITIONS_exe ${_COMPILE_DEFINITIONS} ${ARG_COMPILE_DEFINITIONS} ${ARG_SOURCES}")
+
         add_custom_command(OUTPUT ${_output_path}
                             COMMAND ${SYCL_COMPILER}
                                     ${SYCL_COMPILER_FLAGS} -c
@@ -123,8 +125,9 @@ if (oneapi)
         list(REMOVE_DUPLICATES _inc_dirs)
         list(TRANSFORM _inc_dirs PREPEND -I)
       endif()
-      list(APPEND _inc_dirs ${SYCL_INCLUDE_DIR})
-      list(APPEND _inc_dirs ${SYCL_INCLUDE_DIR}/sycl)
+      # set(_inc_dirs "-I$<JOIN:$<TARGET_PROPERTY:INCLUDE_DIRECTORIES>, -I>")
+      list(APPEND _inc_dirs -I${SYCL_INCLUDE_DIR})
+      list(APPEND _inc_dirs -I${SYCL_INCLUDE_DIR}/sycl)
 
       foreach(lib ${ARG_DEPENDENCIES})
         list(APPEND _lib_dep_paths "$<TARGET_FILE:${lib}>")
@@ -133,6 +136,7 @@ if (oneapi)
       foreach(comp_def ${ARG_COMPILE_DEFINITIONS})
         list(APPEND _COMPILE_DEFINITIONS -D${comp_def})
       endforeach()
+      message(STATUS "_COMPILE_DEFINITIONS : ${_COMPILE_DEFINITIONS}")
 
       # Compile the sycl source files with the found sycl compiler
       foreach(src ${ARG_SOURCES})
@@ -198,10 +202,13 @@ if (adaptivecpp)
       function(add_sycl_to_root_target)
         CMAKE_PARSE_ARGUMENTS(ARG "" "TARGET" "SOURCES;HEADERS;DEPENDENCIES;INCLUDE_DIRECTORIES;COMPILE_DEFINITIONS" ${ARGN})
         target_compile_definitions(${ARG_TARGET} PUBLIC ${ARG_COMPILE_DEFINITIONS})
+        message(STATUS "adaptive_cpp ARG_COMPILE_DEFINITIONS ${ARG_COMPILE_DEFINITIONS}")
         target_link_libraries(${ARG_TARGET} PUBLIC ${ARG_DEPENDENCIES})
         target_include_directories(${ARG_TARGET} INTERFACE ${AdaptiveCpp_INCLUDE_DIRS})
         target_link_libraries(${ARG_TARGET} INTERFACE AdaptiveCpp::acpp-rt)
-        add_sycl_to_target(TARGET ${ARG_TARGET}  SOURCES ${ARG_SOURCES})
+        #add_definitions("-DROOT_MATH_SYCL")
+        #add_definitions("-DROOT_MEAS_TIMING")
+        add_sycl_to_target(TARGET ${ARG_TARGET} SOURCES ${ARG_SOURCES})
       endfunction()
       message(STATUS "AdaptiveCpp sycl enabled")
     else()
@@ -260,7 +267,17 @@ endif()
 if (sycl)
     #set_target_properties(GenVector PROPERTIES LINKER_LANGUAGE CXX)
     target_compile_definitions(SYCLMath PUBLIC ROOT_MATH_SYCL)
-    add_sycl_to_root_target(TARGET SYCLMath SOURCES src/MathUtil.cxx HEADERS inc/SYCLMath/GenVector/MathUtil.h INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+    list(APPEND sycl_compile_list ROOT_MATH_SYCL)
+    list(APPEND sycl_compile_list ROOT_MEAS_TIMING)
+    list(APPEND sycl_compile_list "$<$<BOOL:sycl_buffer>:SYCL_BUFFER>")
+    set(sycl_compile_definitions "$<JOIN:sycl_compile_list, >")
+    message(STATUS "sycl_buffer: ${sycl_buffer}")
+    message(STATUS "sycl_compile_definitions: ${sycl_compile_definitions}")
+    message(STATUS "sycl_compile_list: ${sycl_compile_list}")
+    add_sycl_to_root_target(TARGET SYCLMath SOURCES src/MathUtil.cxx 
+                            HEADERS inc/SYCLMath/GenVector/MathUtil.h 
+                            INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ 
+                            COMPILE_DEFINITIONS ${sycl_compile_list} )
 endif()
 
 
@@ -307,7 +324,7 @@ if ((cuda) OR (sycl))
   if (sycl)
      set_target_properties(VecOps PROPERTIES LINKER_LANGUAGE CXX)
 
-     add_sycl_to_root_target(TARGET VecOps SOURCES src/VecOps.cxx HEADERS inc/SYCLMath/VecOps.h INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ DEPENDENCIES GenVectorX SYCLMath COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+     add_sycl_to_root_target(TARGET VecOps SOURCES src/VecOps.cxx HEADERS inc/SYCLMath/VecOps.h INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ DEPENDENCIES GenVectorX SYCLMath COMPILE_DEFINITIONS ${sycl_compile_list} )
 
       set_target_properties(GenVectorX PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -333,7 +350,7 @@ if ((cuda) OR (sycl))
       src/Rotation3DxAxial.cxx
       INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ 
       DEPENDENCIES SYCLMath 
-      COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+      COMPILE_DEFINITIONS ${sycl_compile_list} )
 
   endif()
       
