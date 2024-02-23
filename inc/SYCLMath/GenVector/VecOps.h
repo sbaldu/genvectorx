@@ -227,7 +227,7 @@ namespace ROOT
 #ifdef ROOT_MEAS_TIMING
       auto start = std::chrono::system_clock::now();
 #endif
-      {
+      
        auto execution_range = sycl::nd_range<1>{
             sycl::range<1>{((N + local_size - 1) / local_size) * local_size},
             sycl::range<1>{local_size}};
@@ -266,11 +266,9 @@ namespace ROOT
       queue.wait();
 #ifndef SYCL_BUFFERS
       queue.memcpy(lvb, d_lvb, N * sizeof(LVector));
-      // sycl::free(d_lv, queue);
-      // sycl::free(d_lvb, queue);
-      // sycl::free(d_bst, queue);
+      queue.wait();
 #endif
-      }
+    
       
 #ifdef ROOT_MEAS_TIMING
       auto end = std::chrono::system_clock::now();
@@ -281,6 +279,11 @@ namespace ROOT
       std::cout << "sycl time " << duration << " (s)" << std::endl;
 #endif
 
+#ifndef SYCL_BUFFERS
+      sycl::free(d_lv, queue);
+      sycl::free(d_lvb, queue);
+      sycl::free(d_bst, queue);
+#endif
       return lvb;
     }
 
