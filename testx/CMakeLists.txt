@@ -112,12 +112,9 @@ endif()
 
 add_executable(InvariantMasses InvariantMasses.cxx)
 target_compile_definitions(InvariantMasses PUBLIC ROOT_MEAS_TIMING)
-#target_link_libraries(InvariantMasses PUBLIC ROOT::MathCore ROOT::ROOTVecOps)
-
 
 add_executable(Boost Boost.cxx)
 target_compile_definitions(Boost PUBLIC ROOT_MEAS_TIMING)
-#target_link_libraries(Boost PUBLIC ROOT::MathCore ROOT::GenVector)
 
 if (single_precision)
   add_executable(SInvariantMasses InvariantMasses.cxx)
@@ -125,8 +122,4 @@ if (single_precision)
 
   add_executable(SBoost Boost.cxx)
   target_compile_definitions(SBoost PUBLIC SINGLE_PRECISION ROOT_MEAS_TIMING)
-  #target_link_libraries(SInvariantMasses PUBLIC ROOT::MathCore ROOT::ROOTVecOps)
 endif()
-
-#add_executable(ChangeCoord ChangeCoord.cxx)
-#target_link_libraries(ChangeCoord PUBLIC ROOT::MathCore ROOT::GenVector)
