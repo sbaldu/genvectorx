@@ -252,17 +252,10 @@ namespace ROOT
           sycl::accessor d_bst{bst_sycl, cgh, sycl::range<1>(1), sycl::read_write}; 
 #endif
           cgh.parallel_for(execution_range,
-                                          [=](sycl::nd_item<1> item)
-                                          {
-                                            size_t id = item.get_global_id().get(0);
-                                            if (id < N)
-                                            {
-                                              Boost bst_loc = d_bst[0];                 //.operator();
-                                              d_lvb[id] = bst_loc.operator()(d_lv[id]); // bst(lv[id]);
-                                            }
-                                          }
+                                         ApplyBoostKernel(d_lv, d_bst, d_lvb, N)); 
 
-                        ); });
+        });
+
       queue.wait();
 #ifndef SYCL_BUFFERS
       queue.memcpy(lvb, d_lvb, N * sizeof(LVector));
