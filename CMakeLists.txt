@@ -308,11 +308,8 @@ add_library(GenVectorX SHARED
 )
 
 target_include_directories(GenVectorX INTERFACE inc)
-
 set_target_properties(GenVectorX PROPERTIES LINKER_LANGUAGE CXX)
-
 target_link_libraries(GenVectorX PUBLIC SYCLMath)
-
 target_compile_definitions(GenVectorX PUBLIC ${compile_list})
 
 
