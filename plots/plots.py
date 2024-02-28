@@ -35,9 +35,39 @@ def result2list(exe, N, nruns):
     #endif
     return time
 
-def run_benchmark(builddir, sizes, nruns = 1,                         
-                testname = "InvariantMasses", 
-                precision = 64, btype = 'cpu'):
+def run_benchmark(builddir, sizes, 
+                  nruns = 1,                         
+                  testname = "InvariantMasses", 
+                  precision = 64, 
+                  btype = 'cpu', 
+                  memtype = '',
+                  platform = '',
+                  output_file = 'output_file'):
+    
+    if precision == 32:
+        testname = 'S'+testname
+    if btype == 'cpu':
+        exe = os.path.join(builddir,'testx',testname)
+        environment = 'CPU'
+    elif btype == 'cuda':
+        exe = os.path.join(builddir,'testx',testname+'CUDA')
+        environment = 'CUDA'
+    elif btype == 'sycl':
+        exe = os.path.join(builddir,'testx',testname+'SYCL')
+        if "oneapi" in builddir.lower():
+            environment = 'oneAPI'
+        if ("acpp" in builddir.lower()) or ("adaptivecpp" in builddir.lower()):
+            environment = 'AdaptiveCPP'
+    else:
+        raise ValueError('Unknown backend')
+    #endif
+    if precision == 32:
+        testname = testname[1:]
+    
+    if (not os.path.exists(exe)):
+        print("Executable", exe, "not found!")
+        return 
+
     timeopt = array( 'd' )
     timestd = array( 'd' )
     
@@ -56,10 +86,24 @@ def run_benchmark(builddir, sizes, nruns = 1,
         return timeopt, timestd
     
     for i, N in enumerate(sizes):
+        #run test
         time = result2list(exe,N,nruns)
+        
         if (len(time)<=0):
             return timeopt, timestd
         print(time, '\n')
+        
+        # If output file does not exist, write headers
+        if not Path(f"{output_file}/timing").exists():
+            with open(f"{output_file}/timing", "w") as file_handler:
+                header = "Time"
+                file_handler.write(f"{base_header},{header}\n")
+        # Write row
+        out_base = f"{platform},{int(N)},{environment},{memtype},{testname},{precision}"
+        with open(f"{output_file}/timing", "a") as file_handler:
+            file_handler.write("\n".join([f"{out_base},{t}" for t in time]) )
+            file_handler.write("\n")
+
         timeopt.append(np.amin(time))
         timestd.append(np.std(time)) 
     #endfor
@@ -179,11 +223,22 @@ def run_nsys_benchmark(builddir, sizes, nruns = 1,
     #endfor
     return 
 
-def collect_results(testname, platform, implementation, nruns):
+def collect_results(testname, platform, implementation, nruns, output_file):
     nruns = int(nruns)
 
-    sizes = array('d',[2**i for i in range(12, 30, 3)]) #10,100,1000,10000,100000,
-    Ssizes = array('d',[2**i for i in range(12, 33, 3)]) #10,100,1000,10000,100000,
+    exponents_64 = [12, 15, 18, 21, 24, 26, 27]
+    exponents_32 = [12, 15, 18, 21, 24, 27, 26, 28]
+
+    if (platform.lower() == 'a100'):
+        exponents_64.extend([28, 29])
+        exponents_32.extend([28, 29, 30])
+    #endif 
+    if (platform.lower() == 'l4'):
+        exponents_64.extend([28])
+        exponents_32.extend([28, 29])    
+    #endif 
+    sizes = array('d',[2**i for i in exponents_64]) #10,100,1000,10000,100000,
+    Ssizes = array('d',[2**i for i in exponents_32]) #10,100,1000,10000,100000,
 
     val = list(sizes)
     sizes_gb = [v*8*4/1e9 for v in val] #(nb of doubles)*(bytes for doubles)*(4=dim of LVector)/(bytes in GB)
@@ -193,6 +248,13 @@ def collect_results(testname, platform, implementation, nruns):
     Ssizes_gb = [v*4*4/1e9 for v in val] #(nb of floats)*(bytes for floats)*(4=dim of LVector)/(bytes in GB)
     Ssizes_gb = array('d', Ssizes_gb)
 
+    if  ('buf' in implementation) or ('bf' in implementation):
+        memtype = 'BUF'
+    elif ('device_pointers' in implementation) or ('dp' in implementation) or ('ptr' in implementation):
+        memtype = 'PTR'
+    else:
+        memtype = ''
+
     savez_dict = {}
     savez_dict['sizes'] = sizes 
     savez_dict['Ssizes'] = Ssizes 
@@ -200,32 +262,30 @@ def collect_results(testname, platform, implementation, nruns):
     savez_dict['Ssizes_gb'] = Ssizes_gb 
     
     if (implementation == 'cpu'):
-        timecpu, stdcpu = run_benchmark(buildacpp, sizes, testname = testname, nruns = nruns, btype = 'cpu')
-        Stimecpu, Sstdcpu = run_benchmark(buildacpp, Ssizes, testname = testname, precision = 32, nruns = nruns, btype = 'cpu')
+        timecpu, stdcpu = run_benchmark(buildcpu, sizes, platform = platform, memtype = memtype, testname = testname, nruns = nruns, btype = 'cpu', output_file = output_file)
+        Stimecpu, Sstdcpu = run_benchmark(buildcpu, sizes, platform = platform, precision = 32, memtype = memtype, testname = testname, nruns = nruns, btype = 'cpu', output_file = output_file)
         savez_dict['timecpu'] = timecpu
         savez_dict['Stimecpu'] = Stimecpu
         savez_dict['stdcpu'] = stdcpu
         savez_dict['Sstdcpu'] = Sstdcpu
     else:
-        if (implementation != "hip"):
-            timeoneapi, stdoneapi = run_benchmark(buildoneapi, sizes, testname = testname, nruns = nruns, btype = 'sycl')
-            Stimeoneapi, Sstdoneapi = run_benchmark(buildoneapi, Ssizes, testname = testname, precision = 32, nruns = nruns, btype = 'sycl')
-            savez_dict['timeoneapi'] = timeoneapi
-            savez_dict['Stimeoneapi'] = Stimeoneapi
-            savez_dict['stdoneapi'] = stdoneapi
-            savez_dict['Sstdoneapi'] = Sstdoneapi
-        #endif
+        timeoneapi, stdoneapi = run_benchmark(buildoneapi, sizes, platform = platform, memtype = memtype, testname = testname, nruns = nruns, btype = 'sycl', output_file = output_file)
+        Stimeoneapi, Sstdoneapi = run_benchmark(buildoneapi, sizes, platform = platform, precision =32, memtype = memtype, testname = testname, nruns = nruns, btype = 'sycl', output_file = output_file)
+        savez_dict['timeoneapi'] = timeoneapi
+        savez_dict['Stimeoneapi'] = Stimeoneapi
+        savez_dict['stdoneapi'] = stdoneapi
+        savez_dict['Sstdoneapi'] = Sstdoneapi
 
-        timeacpp, stdacpp = run_benchmark(buildacpp, sizes, testname = testname, nruns = nruns, btype = 'sycl')
-        Stimeacpp, Sstdacpp = run_benchmark(buildacpp, Ssizes, testname = testname, precision = 32, nruns = nruns, btype = 'sycl')
+        timeacpp, stdacpp = run_benchmark(buildacpp, sizes, platform = platform, memtype = memtype, testname = testname, nruns = nruns, btype = 'sycl', output_file = output_file)
+        Stimeacpp, Sstdacpp = run_benchmark(buildacpp, sizes, platform = platform, precision =32, memtype = memtype, testname = testname, nruns = nruns, btype = 'sycl', output_file = output_file)
         savez_dict['timeacpp'] = timeacpp
         savez_dict['Stimeacpp'] = Stimeacpp
         savez_dict['stdacpp'] = stdacpp
         savez_dict['Sstdacpp'] = Sstdacpp
 
         if ("cuda" in implementation):
-            timecuda, stdcuda = run_benchmark(buildcuda, sizes, testname = testname, nruns = nruns, btype = 'cuda')
-            Stimecuda, Sstdcuda = run_benchmark(buildcuda, Ssizes, nruns = nruns, precision = 32, testname = testname, btype = 'cuda')
+            timecuda, stdcuda = run_benchmark(buildcuda, sizes, platform = platform, memtype = memtype, testname = testname, nruns = nruns, btype = 'cuda', output_file = output_file)
+            Stimecuda, Sstdcuda = run_benchmark(buildcuda, sizes, platform = platform, precision =32,  memtype = memtype, testname = testname, nruns = nruns, btype = 'cuda', output_file = output_file)
             savez_dict['timecuda'] = timecuda
             savez_dict['Stimecuda'] = Stimecuda
             savez_dict['stdcuda'] = stdcuda
@@ -238,8 +298,21 @@ def collect_results(testname, platform, implementation, nruns):
 def collect_nsys_results(testname, platform, implementation, nruns, output_file):
     nruns = int(nruns)
 
-    sizes = array('d',[1000, 10000, 100000,1000000,5000000,10000000, 50000000,100000000]) #10,100,1000,10000,100000,
-    Ssizes = array('d',[1000, 10000, 100000,1000000,5000000,10000000, 50000000,100000000,200000000]) #10,100,1000,10000,100000,
+    #sizes = array('d',[1000, 10000, 100000,1000000,5000000,10000000, 50000000,100000000]) #10,100,1000,10000,100000,
+    #Ssizes = array('d',[1000, 10000, 100000,1000000,5000000,10000000, 50000000,100000000,200000000]) #10,100,1000,10000,100000,
+    exponents_64 = [12, 15, 18, 21, 24, 26, 27]
+    exponents_32 = [12, 15, 18, 21, 24, 27, 26, 28]
+
+    if (platform.lower() == 'a100'):
+        exponents_64.extend([28, 29])
+        exponents_32.extend([28, 29, 30])
+    #endif 
+    if (platform.lower() == 'l4'):
+        exponents_64.extend([28])
+        exponents_32.extend([28, 29])    
+    #endif 
+    sizes = array('d',[2**i for i in exponents_64]) #10,100,1000,10000,100000,
+    Ssizes = array('d',[2**i for i in exponents_32]) #10,100,1000,10000,100000,
 
     val = list(sizes)
     sizes_gb = [v*8*4/1e9 for v in val] #(nb of doubles)*(bytes for doubles)*(4=dim of LVector)/(bytes in GB)
@@ -259,22 +332,19 @@ def collect_nsys_results(testname, platform, implementation, nruns, output_file)
         memtype = ''
     
     if (implementation == 'cpu'):
-        run_nsys_benchmark(buildacpp, sizes, platform = platform, memtype = memtype, testname = testname, nruns = nruns, btype = 'cpu', output_file = output_file)
-        run_nsys_benchmark(buildacpp, Ssizes, platform = platform, memtype = memtype, precision = 32, testname = testname, nruns = nruns, btype = 'cpu', output_file = output_file)
+        run_nsys_benchmark(buildcpu, sizes, platform = platform, memtype = memtype, testname = testname, nruns = nruns, btype = 'cpu', output_file = output_file)
+        run_nsys_benchmark(buildcpu, Ssizes, platform = platform, memtype = memtype, precision = 32, testname = testname, nruns = nruns, btype = 'cpu', output_file = output_file)
     else:
         if ("cuda" in implementation):
-            run_nsys_benchmark(buildcuda, sizes, platform = platform, memtype = 'BUF', testname = testname, nruns = nruns, btype = 'cuda', output_file = output_file)
-            run_nsys_benchmark(buildcuda, Ssizes, platform = platform, memtype = 'BUF', precision = 32,  nruns = nruns, testname = testname, btype = 'cuda', output_file = output_file)
+            run_nsys_benchmark(buildcuda, sizes, platform = platform, memtype = memtype, testname = testname, nruns = nruns, btype = 'cuda', output_file = output_file)
+            run_nsys_benchmark(buildcuda, Ssizes, platform = platform, memtype = memtype, precision = 32,  nruns = nruns, testname = testname, btype = 'cuda', output_file = output_file)
         #endif
 
         run_nsys_benchmark(buildacpp, sizes, platform = platform, memtype = memtype, testname = testname, nruns = nruns, btype = 'sycl', output_file = output_file)
         run_nsys_benchmark(buildacpp, Ssizes, platform = platform, memtype = memtype, precision = 32,  testname = testname, nruns = nruns, btype = 'sycl', output_file = output_file)
         
-        if (implementation != "hip"):
-            run_nsys_benchmark(buildoneapi, sizes, platform = platform, memtype = memtype, testname = testname, nruns = nruns, btype = 'sycl', output_file = output_file)
-            run_nsys_benchmark(buildoneapi, Ssizes, platform = platform, memtype = memtype, precision = 32, testname = testname, nruns = nruns, btype = 'sycl', output_file = output_file)
-        #endif
-
+        run_nsys_benchmark(buildoneapi, sizes, platform = platform, memtype = memtype, testname = testname, nruns = nruns, btype = 'sycl', output_file = output_file)
+        run_nsys_benchmark(buildoneapi, Ssizes, platform = platform, memtype = memtype, precision = 32, testname = testname, nruns = nruns, btype = 'sycl', output_file = output_file)
     #endif
     return
 
@@ -292,7 +362,7 @@ if __name__ == "__main__":
     else:
         output_file = f"{time.strftime('%Y%m%d-%H%M%S')}"
     #
-    global path, buildcuda, buildoneapi, buildacpp
+    global path, buildcuda, buildoneapi, buildacpp, buildcpu
     path = sys.argv[1]
     testname = sys.argv[2] 
     platform = sys.argv[3]
@@ -300,11 +370,12 @@ if __name__ == "__main__":
     memory_model = sys.argv[5]
     implementation = environment+'_'+memory_model 
     nruns = sys.argv[6]
-    # 
+    #
+    buildcpu   = os.path.join(path, '../build_cpu') 
     buildcuda   = os.path.join(path, '../build_cuda')
     buildoneapi = os.path.join(path, '../build_oneapi_'+memory_model)
     buildacpp   = os.path.join(path,'../build_acpp_'+memory_model)
     print(testname, platform, implementation, nruns, output_file)
     collect_nsys_results(testname, platform, implementation, nruns, output_file)
-    #collect_results(testname, platform, implementation, nruns)
+    collect_results(testname, platform, implementation, nruns, output_file)
         

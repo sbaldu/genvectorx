@@ -2,7 +2,7 @@
 
 script="$(dirname "$(readlink -f -- "$0")")/plots.py"
 path="$(dirname "$(readlink -f -- "$0")")/"
-nrun=1
+nrun=3
 environments="cuda"
 platform="rtx3060"
 output="$(date "+%y%m%d-%H%M%S")"
@@ -27,7 +27,7 @@ do
         for t in ${tests[@]}
         do
             #echo "ACPP_VISIBILITY_MASK=$e ONEAPI_DEVICE_SELECTOR=$e:0 python $script ${path} ${t} ${platform} ${e} ${s} $nrun $output"
-            ACPP_VISIBILITY_MASK=$e ONEAPI_DEVICE_SELECTOR=$e:0 python $script ${path} ${t} ${platform} ${e} ${s} $nrun $output
+            ACPP_VISIBILITY_MASK=$e ONEAPI_DEVICE_SELECTOR=$e:0 python3 $script ${path} ${t} ${platform} ${e} ${s} $nrun $output
         done
     done
 done
