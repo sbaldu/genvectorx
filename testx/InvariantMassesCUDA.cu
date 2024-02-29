@@ -58,7 +58,7 @@ int main(int argc, char **argv)
   int count;
   cudaGetDeviceCount(&count); 
   std::cout << "CUDA available devices: " << count << std::endl;
-  cudaSetDevice(0);
+  cudaSetDevice(count-1);
   //cudaInitDevice(0,);
 
   std::string arg1 = argv[1];
