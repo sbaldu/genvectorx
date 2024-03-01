@@ -67,6 +67,8 @@ def run_benchmark(builddir, sizes,
     if (not os.path.exists(exe)):
         print("Executable", exe, "not found!")
         return 
+    if not os.path.exists(f"{output_file}"):
+        os.mkdir(f"{output_file}")
 
     timeopt = array( 'd' )
     timestd = array( 'd' )
@@ -81,9 +83,6 @@ def run_benchmark(builddir, sizes,
         exe = os.path.join(builddir,'testx',testname+'SYCL')
     #endif
     
-    if (not os.path.exists(exe)):
-        print("Executable", exe, "not found!")
-        return timeopt, timestd
     
     for i, N in enumerate(sizes):
         #run test
@@ -376,6 +375,7 @@ if __name__ == "__main__":
     buildoneapi = os.path.join(path, '../build_oneapi_'+memory_model)
     buildacpp   = os.path.join(path,'../build_acpp_'+memory_model)
     print(testname, platform, implementation, nruns, output_file)
-    collect_nsys_results(testname, platform, implementation, nruns, output_file)
     collect_results(testname, platform, implementation, nruns, output_file)
+    collect_nsys_results(testname, platform, implementation, nruns, output_file)
+    
         
