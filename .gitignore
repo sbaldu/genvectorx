@@ -13,6 +13,7 @@ plots/.ipynb_checkpoints
 # timing results
 plots/*.npz
 plots/*.png
+plots/*.nsys-rep
 plots/2*
 
 # nsys results
