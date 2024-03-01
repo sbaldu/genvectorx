@@ -14,6 +14,8 @@ plots/.ipynb_checkpoints
 plots/*.npz
 plots/*.png
 plots/*.nsys-rep
+plots/*.err
+plots/*.out
 plots/2*
 
 # nsys results
