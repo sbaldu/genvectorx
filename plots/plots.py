@@ -385,7 +385,7 @@ if __name__ == "__main__":
     #
     print(testname, platform, environment, memory_model, nruns, output_file)
     collect_results(testname, platform, environment, memory_model, nruns, output_file)
-    #if (environment.lower() == 'cuda'):
-    #    collect_nsys_results(testname, platform, environment, memory_model, nruns, output_file)
+    if (environment.lower() == 'cuda'):
+        collect_nsys_results(testname, platform, environment, memory_model, nruns, output_file)
     
         
