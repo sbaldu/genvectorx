@@ -287,14 +287,6 @@ def run_rocprof_benchmark(builddir, sizes,
         except subprocess.CalledProcessError:
             continue
 
-
-        # Gather statistics
-        result = subprocess.run(
-            [nsys, "stats", "temp.nsys-rep", "--format=csv"],
-            stdout=subprocess.PIPE,
-            check=True
-        )
-
         
         # If output file does not exist, write headers
         if not Path(f"{output_file}/api").exists():
