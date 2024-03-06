@@ -551,5 +551,7 @@ if __name__ == "__main__":
     collect_results(testname, platform, environment, memory_model, nruns, output_file)
     if (environment.lower() == 'cuda'):
         collect_nsys_results(testname, platform, environment, memory_model, nruns, output_file)
+    if (environment.lower() == 'hip'):
+        collect_rocprof_results(testname, platform, environment, memory_model, nruns, output_file)
     
         
