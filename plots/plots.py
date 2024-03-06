@@ -122,6 +122,7 @@ def run_benchmark(builddir, sizes,
 def run_nsys_benchmark(builddir, sizes, 
                        nruns = 1, 
                        testname = "InvariantMasses", 
+                       environment = 'cuda',
                        memtype = '',
                        platform = '',
                        precision = 64,
@@ -241,6 +242,7 @@ def run_nsys_benchmark(builddir, sizes,
 def run_rocprof_benchmark(builddir, sizes, 
                        nruns = 1, 
                        testname = "InvariantMasses", 
+                       environment = 'hip',
                        memtype = '',
                        platform = '',
                        precision = 64,
@@ -548,10 +550,10 @@ if __name__ == "__main__":
     buildacpp   = os.path.join(path,'../build_acpp_'+memory_model.lower())
     #
     print(testname, platform, environment, memory_model, nruns, output_file)
-    collect_results(testname, platform, environment, memory_model, nruns, output_file)
+    
     if (environment.lower() == 'cuda'):
         collect_nsys_results(testname, platform, environment, memory_model, nruns, output_file)
     if (environment.lower() == 'hip'):
         collect_rocprof_results(testname, platform, environment, memory_model, nruns, output_file)
-    
+    collect_results(testname, platform, environment, memory_model, nruns, output_file)
         
