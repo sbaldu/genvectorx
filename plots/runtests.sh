@@ -6,9 +6,9 @@
 script="$(dirname "$(readlink -f -- "$0")")/plots.py"
 path="$(dirname "$(readlink -f -- "$0")")/"
 nrun=3
-environments="cuda"
-platform=$1
-device_nb=$2
+environments=$1
+platform=$2
+device_nb=$3
 output="$(date "+%y%m%d-%H%M%S")"
 declare -a sycl_mms=("BUF" "PTR")
 declare -a tests=("InvariantMasses" "Boost")
