@@ -17,6 +17,7 @@ plots/*.nsys-rep
 plots/*.err
 plots/*.out
 plots/2*
+plots/results.*
 
 # nsys results
 plots/20*
