@@ -20,7 +20,8 @@ do
     do
         for t in ${tests[@]}
         do
-            echo "python3 $script ${path} ${t} ${platform} ${e} ${device_nb} ${s} $nrun $output"
+            echo "ACPP_VISIBILITY_MASK=${e} ONEAPI_DEVICE_SELECTOR=${e}:${device_nb}  python3 $script ${path} ${t} ${platform} ${e} ${device_nb} ${s} $nrun $output"
+            # ACPP_VISIBILITY_MASK=${e} ONEAPI_DEVICE_SELECTOR=${e}:${device_nb} 
             python3 $script ${path} ${t} ${platform} ${e} ${device_nb} ${s} $nrun $output
         done
     done
