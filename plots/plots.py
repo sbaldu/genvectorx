@@ -162,7 +162,6 @@ def run_nsys_benchmark(builddir, sizes,
         os.mkdir(f"{output_file}")
     
     for i, N in enumerate(sizes):
-        time = result2list(exe,N,nruns)
         arg = f"{int(N)} {nruns}"
         # Profile code with nsys
         try:
@@ -276,7 +275,6 @@ def run_rocprof_benchmark(builddir, sizes,
         os.mkdir(f"{output_file}")
     
     for i, N in enumerate(sizes):
-        time = result2list(exe,N,nruns)
         arg = f"{int(N)} {nruns}"
         # Profile code with rocprof and gather statistics
         try:
