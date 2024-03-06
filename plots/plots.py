@@ -311,20 +311,26 @@ def run_rocprof_benchmark(builddir, sizes,
         # Write row
         out_base = f"{platform},{int(N)},{implemetation},{memtype},{testname},{precision}"
         with open(f"{output_file}/api","a") as file_handler:
-            file_handler.write(
-                "\n".join([f"{out_base},{s}" for s in content_api[1:]])
-            )
-            file_handler.write("\n")
+             with open(f"results.hip_stats.csv", "r") as output:
+                    content_api = output.read().split("\n")                
+                    file_handler.write(
+                        "\n".join([f"{out_base},{s}" for s in content_api[1:]])
+                    )
+                    file_handler.write("\n")
         with open(f"{output_file}/kernel", "a") as file_handler:
-            file_handler.write(
-                "\n".join([f"{out_base},{s}" for s in content_kernel[1:]])
-            )
-            file_handler.write("\n")
+             with open(f"results.stats.csv", "r") as output:
+                    content_kernel = output.read().split("\n") 
+                    file_handler.write(
+                        "\n".join([f"{out_base},{s}" for s in content_kernel[1:]])
+                    )
+                    file_handler.write("\n")
         with open(f"{output_file}/memop","a") as file_handler:
-            file_handler.write(
-                "\n".join([f"{out_base},{s}" for s in content_memop[1:]])
-            )
-            file_handler.write("\n")
+             with open(f"results.copy_stats.csv", "r") as output:
+                    content_memop = output.read().split("\n")       
+                    file_handler.write(
+                        "\n".join([f"{out_base},{s}" for s in content_memop[1:]])
+                    )
+                    file_handler.write("\n")
 
         subprocess.run(["rm", "results.copy_stats.csv", "results.hip_stats.csv","results.stats.csv"])
     #endfor
