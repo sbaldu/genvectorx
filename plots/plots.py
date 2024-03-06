@@ -305,7 +305,7 @@ def run_rocprof_benchmark(builddir, sizes,
             with open(f"{output_file}/memop","w") as file_handler:
                 with open(f"results.copy_stats.csv", "r") as output:
                     content_memop = output.read().split("\n")
-                    header = content_memop.replace('"','')
+                    header = content_memop[0].replace('"','')
                     file_handler.write(f"{base_header},{header}\n")
 
         # Write row
