@@ -53,6 +53,11 @@ int main(int argc, char **argv)
   std::size_t nruns = std::stoi(arg2, &pos);
   size_t local_size = 128;
 
+  int count;
+  cudaGetDeviceCount(&count); 
+  std::cout << "CUDA available devices: " << count << std::endl;
+  cudaSetDevice(count-1);
+
   LVector *lv = GenVectors(N);
   LVector *lvb = new LVector[N];
 

@@ -1,6 +1,9 @@
 # building
 build*
 
+#output
+out
+
 # editor
 .vscode
 
@@ -9,6 +12,15 @@ plots/.ipynb_checkpoints
 
 # timing results
 plots/*.npz
+plots/*.png
+plots/*.nsys-rep
+plots/*.err
+plots/*.out
+plots/2*
+plots/results.*
+
+# nsys results
+plots/20*
 
 # nsys report
 nsysreport

@@ -1,12 +1,29 @@
-#!/bin/sh
+#!/bin/bash
 
-python /home/mdessole/Projects/ROOT/genvectorxfork/plots/plots.py Boost cpu 3
-python /home/mdessole/Projects/ROOT/genvectorxfork/plots/plots.py InvariantMasses cpu 3
+# $1: platform (i.e. gpu model)
+# $2: device index
 
-ACPP_VISIBILITY_MASK=ocl ONEAPI_DEVICE_SELECTOR=opencl:0 python /home/mdessole/Projects/ROOT/genvectorxfork/plots/plots.py Boost fpga_$1 3
-ACPP_VISIBILITY_MASK=ocl ONEAPI_DEVICE_SELECTOR=opencl:1 python /home/mdessole/Projects/ROOT/genvectorxfork/plots/plots.py Boost ocl_$1 3
-ACPP_VISIBILITY_MASK=cuda ONEAPI_DEVICE_SELECTOR=cuda:0 python /home/mdessole/Projects/ROOT/genvectorxfork/plots/plots.py Boost cuda_$1 3
+script="$(dirname "$(readlink -f -- "$0")")/plots.py"
+path="$(dirname "$(readlink -f -- "$0")")/"
+nrun=3
+environments=$1
+platform=$2
+device_nb=$3
+output="$(date "+%y%m%d-%H%M%S")"
+declare -a sycl_mms=("BUF" "PTR")
+declare -a tests=("InvariantMasses" "Boost")
 
-ACPP_VISIBILITY_MASK=ocl ONEAPI_DEVICE_SELECTOR=opencl:1 python /home/mdessole/Projects/ROOT/genvectorxfork/plots/plots.py InvariantMasses ocl_$1 3
-ACPP_VISIBILITY_MASK=ocl ONEAPI_DEVICE_SELECTOR=opencl:0 python /home/mdessole/Projects/ROOT/genvectorxfork/plots/plots.py InvariantMasses fpga_$1 3
-ACPP_VISIBILITY_MASK=cuda ONEAPI_DEVICE_SELECTOR=cuda:0 python /home/mdessole/Projects/ROOT/genvectorxfork/plots/plots.py InvariantMasses cuda_$1 3
+
+for e in "$environments"
+do      
+    for s in ${sycl_mms[@]}
+    do
+        for t in ${tests[@]}
+        do
+            echo "ACPP_VISIBILITY_MASK=${e} ONEAPI_DEVICE_SELECTOR=${e}:${device_nb}  python3 $script ${path} ${t} ${platform} ${e} ${device_nb} ${s} $nrun $output"
+            # ACPP_VISIBILITY_MASK=${e} ONEAPI_DEVICE_SELECTOR=${e}:${device_nb} 
+            python3 $script ${path} ${t} ${platform} ${e} ${device_nb} ${s} $nrun $output
+        done
+    done
+done
+

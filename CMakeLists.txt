@@ -2,15 +2,15 @@ project(genvectorx)
 
 cmake_minimum_required(VERSION 3.9)
 
-find_package(ROOT REQUIRED COMPONENTS MathCore ROOTVecOps GenVector)
+find_package(ROOT COMPONENTS MathCore ROOTVecOps GenVector)
 if (ROOT_FOUND)
   message(STATUS "ROOT library found")
-  #message(STATUS "ROOT_INCLUDE_DIRS: ${ROOT_INCLUDE_DIRS}")
-  #message(STATUS "ROOT_LIBRARIES: ${ROOT_LIBRARIES}")
-  #message(STATUS "ROOT_CXX_FLAGS: ${ROOT_CXX_FLAGS}")
-  #message(STATUS "ROOT_INCLUDE_DIRS: ${ROOT_INCLUDE_DIRS}")
+  message(DEBUG "ROOT_INCLUDE_DIRS: ${ROOT_INCLUDE_DIRS}")
+  message(DEBUG "ROOT_LIBRARIES: ${ROOT_LIBRARIES}")
+  message(DEBUG "ROOT_CXX_FLAGS: ${ROOT_CXX_FLAGS}")
+  message(DEBUG "ROOT_INCLUDE_DIRS: ${ROOT_INCLUDE_DIRS}")
 else()
-  message(FATAL_ERROR "ROOT library not found")
+  message(STATUS "ROOT library not found")
 endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/inc)
@@ -31,21 +31,21 @@ if (oneapi)
              NAMES libsycl.so
              HINTS ${_sycl_search_dirs}
              PATH_SUFFIXES lib)
-    message(STATUS "_sycl_search_dirs: ${_sycl_search_dirs}")
-    message(STATUS "SYCL_COMPILER: ${SYCL_COMPILER}")
-    message(STATUS "SYCL_INCLUDE_DIR: ${SYCL_INCLUDE_DIR}")
-    message(STATUS "SYCL_LIB_DIR: ${SYCL_LIB_DIR}")
+    message(DEBUG "_sycl_search_dirs: ${_sycl_search_dirs}")
+    message(DEBUG "SYCL_COMPILER: ${SYCL_COMPILER}")
+    message(DEBUG "SYCL_INCLUDE_DIR: ${SYCL_INCLUDE_DIR}")
+    message(DEBUG "SYCL_LIB_DIR: ${SYCL_LIB_DIR}")
 
     if (syclcuda)
       set(_fsycl_targets "-fsycl-targets=nvptx64-nvidia-cuda,spir64_x86_64,spir64 -Xsycl-target-backend=nvptx64-nvidia-cuda --cuda-gpu-arch=sm_${CMAKE_CUDA_ARCHITECTURES} --cuda-path=${CUDA_TOOLKIT_ROOT_DIR} ")
     elseif (syclamd)
-      set(_fsycl_targets "-fsycl-targets=amdgcn-amd-amdhsa -Xsycl-target-backend=amdgcn-amd-amdhsa --offload-arch=gfx90c ")
+      set(_fsycl_targets "-fsycl-targets=amdgcn-amd-amdhsa -Xsycl-target-backend=amdgcn-amd-amdhsa --offload-arch=${CMAKE_OFFLOAD_ARCHITECTURES} ")
     else()
         set(_fsycl_targets "-fsycl-targets=spir64_x86_64,spir64")
     endif()
 
     set(SYCL_COMPILER_FLAGS "-fPIC -fsycl -fsycl-unnamed-lambda -sycl-std=2020 ${_fsycl_targets} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${_BUILD_TYPE_UPPER}}")
-    message(STATUS "SYCL compiler flags: ${SYCL_COMPILER_FLAGS}")
+    message(DEBUG "SYCL compiler flags: ${SYCL_COMPILER_FLAGS}")
     separate_arguments(SYCL_COMPILER_FLAGS NATIVE_COMMAND ${SYCL_COMPILER_FLAGS})
 
     if (SYCL_COMPILER)
@@ -123,8 +123,8 @@ if (oneapi)
         list(REMOVE_DUPLICATES _inc_dirs)
         list(TRANSFORM _inc_dirs PREPEND -I)
       endif()
-      list(APPEND _inc_dirs ${SYCL_INCLUDE_DIR})
-      list(APPEND _inc_dirs ${SYCL_INCLUDE_DIR}/sycl)
+      list(APPEND _inc_dirs -I${SYCL_INCLUDE_DIR})
+      list(APPEND _inc_dirs -I${SYCL_INCLUDE_DIR}/sycl)
 
       foreach(lib ${ARG_DEPENDENCIES})
         list(APPEND _lib_dep_paths "$<TARGET_FILE:${lib}>")
@@ -133,6 +133,7 @@ if (oneapi)
       foreach(comp_def ${ARG_COMPILE_DEFINITIONS})
         list(APPEND _COMPILE_DEFINITIONS -D${comp_def})
       endforeach()
+      message(DEBUG "_COMPILE_DEFINITIONS : ${_COMPILE_DEFINITIONS}")
 
       # Compile the sycl source files with the found sycl compiler
       foreach(src ${ARG_SOURCES})
@@ -154,7 +155,7 @@ if (oneapi)
 
       set(SYCL_LINKER_FLAGS "-shared -Wl,-soname,$<TARGET_FILE:${_library_name}> -L${SYCL_LIB_DIR} ${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath,${SYCL_LIB_DIR}:$<TARGET_FILE_DIR:${_library_name}>")
       separate_arguments(SYCL_LINKER_FLAGS NATIVE_COMMAND ${SYCL_LINKER_FLAGS})
-      message(STATUS "SYCL linker flags: ${SYCL_LINKER_FLAGS}")
+      message(DEBUG "SYCL linker flags: ${SYCL_LINKER_FLAGS}")
       set_property(TARGET ${ARG_TARGET} PROPERTY LINK_DEPENDS ${_outputs})
       set_property(TARGET ${ARG_TARGET} PROPERTY LINK_DEPENDS ${ARG_DEPENDENCIES})
 
@@ -201,7 +202,7 @@ if (adaptivecpp)
         target_link_libraries(${ARG_TARGET} PUBLIC ${ARG_DEPENDENCIES})
         target_include_directories(${ARG_TARGET} INTERFACE ${AdaptiveCpp_INCLUDE_DIRS})
         target_link_libraries(${ARG_TARGET} INTERFACE AdaptiveCpp::acpp-rt)
-        add_sycl_to_target(TARGET ${ARG_TARGET}  SOURCES ${ARG_SOURCES})
+        add_sycl_to_target(TARGET ${ARG_TARGET} SOURCES ${ARG_SOURCES})
       endfunction()
       message(STATUS "AdaptiveCpp sycl enabled")
     else()
@@ -249,6 +250,10 @@ if (cuda)
   target_compile_options(SYCLMath PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
   set_target_properties(SYCLMath PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   target_compile_definitions(SYCLMath INTERFACE ROOT_MATH_CUDA)
+  list(APPEND cuda_compile_list ROOT_MATH_CUDA)
+  if (timing)
+    list(APPEND cuda_compile_list ROOT_MEAS_TIMING)
+  endif()
 else()
   add_library(SYCLMath SHARED
   src/MathUtil.cxx
@@ -256,13 +261,27 @@ else()
   set_target_properties(SYCLMath PROPERTIES LINKER_LANGUAGE CXX)
 endif()
 
-
 if (sycl)
     #set_target_properties(GenVector PROPERTIES LINKER_LANGUAGE CXX)
     target_compile_definitions(SYCLMath PUBLIC ROOT_MATH_SYCL)
-    add_sycl_to_root_target(TARGET SYCLMath SOURCES src/MathUtil.cxx HEADERS inc/SYCLMath/GenVector/MathUtil.h INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+    list(APPEND sycl_compile_list ROOT_MATH_SYCL)
+    if (timing)
+      list(APPEND sycl_compile_list ROOT_MEAS_TIMING)
+    endif()
+    if (sycl_buffer)
+      list(APPEND sycl_compile_list SYCL_BUFFER)
+    endif()
+    message(DEBUG "sycl_buffer: ${sycl_buffer}")
+    message(DEBUG "sycl_compile_list: ${sycl_compile_list}")
+    add_sycl_to_root_target(TARGET SYCLMath SOURCES src/MathUtil.cxx 
+                            HEADERS inc/SYCLMath/GenVector/MathUtil.h 
+                            INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ 
+                            COMPILE_DEFINITIONS ${sycl_compile_list} )
 endif()
 
+if (timing)
+  list(APPEND compile_list ROOT_MEAS_TIMING)
+endif()
 
 add_library(GenVectorX SHARED
   src/3DConversions.cxx
@@ -287,10 +306,10 @@ add_library(GenVectorX SHARED
 )
 
 target_include_directories(GenVectorX INTERFACE inc)
-
 set_target_properties(GenVectorX PROPERTIES LINKER_LANGUAGE CXX)
-
 target_link_libraries(GenVectorX PUBLIC SYCLMath)
+target_compile_definitions(GenVectorX PUBLIC ${compile_list})
+
 
 if ((cuda) OR (sycl))
   add_library(VecOps SHARED
@@ -302,12 +321,14 @@ if ((cuda) OR (sycl))
     set_source_files_properties(src/VecOps.cxx PROPERTIES LANGUAGE CUDA)
     target_compile_options(VecOps PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
     set_target_properties(VecOps PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-    target_compile_definitions(VecOps PUBLIC ROOT_MATH_CUDA ROOT_MEAS_TIMING)
+    target_compile_definitions(VecOps PUBLIC ${cuda_compile_list})
   endif()
   if (sycl)
      set_target_properties(VecOps PROPERTIES LINKER_LANGUAGE CXX)
 
-     add_sycl_to_root_target(TARGET VecOps SOURCES src/VecOps.cxx HEADERS inc/SYCLMath/VecOps.h INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ DEPENDENCIES GenVectorX SYCLMath COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+     add_sycl_to_root_target(TARGET VecOps SOURCES src/VecOps.cxx HEADERS inc/SYCLMath/VecOps.h 
+                            INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ DEPENDENCIES GenVectorX SYCLMath 
+                            COMPILE_DEFINITIONS ${sycl_compile_list} )
 
       set_target_properties(GenVectorX PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -333,7 +354,7 @@ if ((cuda) OR (sycl))
       src/Rotation3DxAxial.cxx
       INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/ 
       DEPENDENCIES SYCLMath 
-      COMPILE_DEFINITIONS ROOT_MATH_SYCL ROOT_MEAS_TIMING )
+      COMPILE_DEFINITIONS ${sycl_compile_list} )
 
   endif()
       
