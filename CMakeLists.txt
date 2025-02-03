@@ -374,6 +374,8 @@ endif()
 
 if (benchmarking)
     # use google benchmarks
-    find_package(benchmark REQUIRED)
+	set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
+	add_subdirectory(external/benchmark)
+	add_subdirectory(external/pybind11)
     add_subdirectory(benchmarks)
 endif()
