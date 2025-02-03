@@ -2,7 +2,7 @@
 #include "SYCLMath/Boost.h"
 #include "SYCLMath/VecOps.h"
 #include "SYCLMath/Vector4D.h"
-#include <benchmark/benchmark.hpp>
+#include <benchmark/benchmark.h>
 #include <chrono>
 #include <memory>
 
@@ -16,32 +16,27 @@ using LVector =
     ROOT::Experimental::LorentzVector<ROOT::Experimental::PtEtaPhiM4D<Scalar>>;
 using Boost = ROOT::Experimental::Boost;
 
-LVector *GenVectors(int n) {
+auto GenVectors(int n) {
   auto vectors = std::make_unique<LVector[]>(n);
 
   // generate n -4 momentum quantities
-  std::for_each(vectors.begin(), vectors.end(), [](auto &vec) -> void {
-    std::fill(vec.begin(), vec.end(), 1.);
+  std::for_each(vectors.get(), vectors.get() + n, [](auto &vec) -> void {
+    vec = {1., 1., 1., 1.};
   });
 
   return std::move(vectors);
 }
 
-bool print_if_false(const bool assertion, size_t i) {
-  if (!assertion) {
-    std::cout << "Assertion failed at index " << i << std::endl;
-  }
-  return assertion;
-}
-
 static void BM_ApplyBoost(benchmark::State &state) {
   for (auto _ : state) {
-    auto lvectors = GenVectors(N);
-    auto lvectorsboost = std::make_unique<LVector[]>(N);
+    // TODO: take size from state
+    auto lvectors = GenVectors(state.range(0));
+    auto* lvectorsboost = new LVector[state.range(0)];
 
     Boost bst(0.3, 0.4, 0.5);
-    std::transform(lvectors.begin(), lvectors.end(), lvectorsboost.begin(), [](auto& lvec) -> return LVector {
-            });
+	lvectorsboost = ROOT::Experimental::ApplyBoost(lvectors.get(), bst, state.range(0));
+
+	delete[] lvectorsboost;
   }
 }
 
