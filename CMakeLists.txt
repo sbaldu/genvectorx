@@ -371,3 +371,9 @@ endif()
 if (testing)
  add_subdirectory(testx)
 endif()
+
+if (benchmarking)
+    # use google benchmarks
+    find_package(benchmark REQUIRED)
+    add_subdirectory(benchmarks)
+endif()
