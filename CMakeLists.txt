@@ -500,6 +500,12 @@ else()
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
 
-if(testing)
-  add_subdirectory(testx)
+if (testing)
+ add_subdirectory(testx)
+endif()
+
+if (benchmarking)
+    # use google benchmarks
+    find_package(benchmark REQUIRED)
+    add_subdirectory(benchmarks)
 endif()
