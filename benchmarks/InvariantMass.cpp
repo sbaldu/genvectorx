@@ -1,9 +1,8 @@
-
-#include "SYCLMath/Boost.h"
-#include "SYCLMath/VecOps.h"
+#include "SYCLMath/PtEtaPhiM4D.h"
 #include "SYCLMath/Vector4D.h"
+#include "SYCLMath/VecOps.h"
+
 #include <benchmark/benchmark.h>
-#include <chrono>
 #include <memory>
 
 #ifdef SINGLE_PRECISION
@@ -14,7 +13,6 @@ using Scalar = double;
 
 using LVector =
     ROOT::Experimental::LorentzVector<ROOT::Experimental::PtEtaPhiM4D<Scalar>>;
-using Boost = ROOT::Experimental::Boost;
 
 auto GenVectors(int n) {
   auto vectors = std::make_unique<LVector[]>(n);
@@ -27,19 +25,17 @@ auto GenVectors(int n) {
   return std::move(vectors);
 }
 
-static void BM_ApplyBoost(benchmark::State &state) {
+static void BM_InvariantMasses(benchmark::State& state) {
   for (auto _ : state) {
     const auto N = state.range(0);
-    auto lvectors = GenVectors(N);
-    auto* lvectorsboost = new LVector[N];
+	auto u_vectors = GenVectors(N);
+	auto v_vectors = GenVectors(N);
 
-    Boost bst(0.3, 0.4, 0.5);
-	lvectorsboost = ROOT::Experimental::ApplyBoost(lvectors.get(), bst, N);
-
-	delete[] lvectorsboost;
+	Scalar *masses = new Scalar(N);
+	masses = ROOT::Experimental::InvariantMasses<Scalar, LVector>(u_vectors.get(), v_vectors.get(), N);
   }
 }
 
-BENCHMARK(BM_ApplyBoost)->RangeMultiplier(2)->Range(1 << 10, 1 << 25);
+BENCHMARK(BM_InvariantMasses)->RangeMultiplier(2)->Range(1 << 10, 1 << 25);
 
 BENCHMARK_MAIN();
