@@ -27,11 +27,12 @@ auto GenVectors(int n) {
 
 static void BM_InvariantMasses(benchmark::State& state) {
   for (auto _ : state) {
+    const auto N = state.range(0);
 	auto u_vectors = GenVectors(N);
 	auto v_vectors = GenVectors(N);
 
 	Scalar *masses = new Scalar(N);
-	masses = ROOT::Experimental::InvariantMasses<Scalar, LVector>(u_vectors, v_vectors, N);
+	masses = ROOT::Experimental::InvariantMasses<Scalar, LVector>(u_vectors.get(), v_vectors.get(), N);
   }
 }
 

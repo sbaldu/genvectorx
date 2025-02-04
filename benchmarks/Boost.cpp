@@ -29,12 +29,12 @@ auto GenVectors(int n) {
 
 static void BM_ApplyBoost(benchmark::State &state) {
   for (auto _ : state) {
-    // TODO: take size from state
-    auto lvectors = GenVectors(state.range(0));
-    auto* lvectorsboost = new LVector[state.range(0)];
+    const auto N = state.range(0);
+    auto lvectors = GenVectors(N);
+    auto* lvectorsboost = new LVector[N];
 
     Boost bst(0.3, 0.4, 0.5);
-	lvectorsboost = ROOT::Experimental::ApplyBoost(lvectors.get(), bst, state.range(0));
+	lvectorsboost = ROOT::Experimental::ApplyBoost(lvectors.get(), bst, N);
 
 	delete[] lvectorsboost;
   }
