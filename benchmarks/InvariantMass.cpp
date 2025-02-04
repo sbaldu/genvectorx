@@ -25,7 +25,7 @@ auto GenVectors(int n) {
   return std::move(vectors);
 }
 
-static void BM_InvariantMasses(benchmark::State& state) {
+static void BM_InvariantMass(benchmark::State& state) {
   for (auto _ : state) {
     const auto N = state.range(0);
 	auto u_vectors = GenVectors(N);
@@ -36,6 +36,6 @@ static void BM_InvariantMasses(benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_InvariantMasses)->RangeMultiplier(2)->Range(1 << 10, 1 << 25);
+BENCHMARK(BM_InvariantMass)->RangeMultiplier(2)->Range(1 << 10, 1 << 20);
 
 BENCHMARK_MAIN();
