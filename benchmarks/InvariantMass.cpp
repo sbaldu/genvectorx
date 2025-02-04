@@ -1,0 +1,40 @@
+#include "SYCLMath/PtEtaPhiM4D.h"
+#include "SYCLMath/Vector4D.h"
+#include "SYCLMath/VecOps.h"
+
+#include <benchmark/benchmark.h>
+#include <memory>
+
+#ifdef SINGLE_PRECISION
+using Scalar = float;
+#else
+using Scalar = double;
+#endif
+
+using LVector =
+    ROOT::Experimental::LorentzVector<ROOT::Experimental::PtEtaPhiM4D<Scalar>>;
+
+auto GenVectors(int n) {
+  auto vectors = std::make_unique<LVector[]>(n);
+
+  // generate n -4 momentum quantities
+  std::for_each(vectors.get(), vectors.get() + n, [](auto &vec) -> void {
+    vec = {1., 1., 1., 1.};
+  });
+
+  return std::move(vectors);
+}
+
+static void BM_InvariantMasses(benchmark::State& state) {
+  for (auto _ : state) {
+	auto u_vectors = GenVectors(N);
+	auto v_vectors = GenVectors(N);
+
+	Scalar *masses = new Scalar(N);
+	masses = ROOT::Experimental::InvariantMasses<Scalar, LVector>(u_vectors, v_vectors, N);
+  }
+}
+
+BENCHMARK(BM_InvariantMasses)->RangeMultiplier(2)->Range(1 << 10, 1 << 25);
+
+BENCHMARK_MAIN();
