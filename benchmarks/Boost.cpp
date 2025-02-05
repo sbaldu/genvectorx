@@ -34,12 +34,12 @@ static void BM_ApplyBoost(benchmark::State &state) {
     auto* lvectorsboosted = new LVector[N];
 
     Boost bst(0.3, 0.4, 0.5);
-	lvectorsboost = ROOT::Experimental::ApplyBoost(lvectors.get(), bst, N);
+	lvectorsboosted = ROOT::Experimental::ApplyBoost(lvectors.get(), bst, N);
 
-	delete[] lvectorsboost;
+	delete[] lvectorsboosted;
   }
 }
 
-BENCHMARK(BM_ApplyBoost)->RangeMultiplier(2)->Range(1 << 10, 1 << 25);
+BENCHMARK(BM_ApplyBoost)->RangeMultiplier(2)->Range(1 << 10, 1 << 20);
 
 BENCHMARK_MAIN();

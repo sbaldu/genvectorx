@@ -29,26 +29,26 @@ auto GenVectors(int n) {
 }
 
 static void BM_ApplyBoost(benchmark::State &state) {
+  int count;
+  cudaGetDeviceCount(&count);
+  cudaSetDevice(count - 1);
   for (auto _ : state) {
     const auto N = state.range(0);
     size_t local_size = 128;
 
-    int count;
-    cudaGetDeviceCount(&count);
-    cudaSetDevice(count - 1);
 
     auto lvectors = GenVectors(N);
     LVector *lvectorsboosted = new LVector[N];
 
     Boost bst(0.3, 0.4, 0.5);
 
-    lvectorsboosted =
-        ROOT::Experimental::ApplyBoost<Boost, LVector>(lvectors.get(), bst, N, local_size);
+    lvectorsboosted = ROOT::Experimental::ApplyBoost<Boost, LVector>(
+        lvectors.get(), bst, N, local_size);
 
-    delete[] lvb;
+    delete[] lvectorsboosted;
   }
 }
 
-BENCHMARK(BM_ApplyBoost);
+BENCHMARK(BM_ApplyBoost)->RangeMultiplier(2)->Range(1 << 10, 1 << 20);
 
 BENCHMARK_MAIN();

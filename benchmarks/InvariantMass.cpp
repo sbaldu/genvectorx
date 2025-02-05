@@ -36,6 +36,6 @@ static void BM_InvariantMass(benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_InvariantMass)->RangeMultiplier(2)->Range(1 << 10, 1 << 25);
+BENCHMARK(BM_InvariantMass)->RangeMultiplier(2)->Range(1 << 10, 1 << 20);
 
 BENCHMARK_MAIN();
