@@ -31,7 +31,7 @@ static void BM_ApplyBoost(benchmark::State &state) {
   for (auto _ : state) {
     const auto N = state.range(0);
     auto lvectors = GenVectors(N);
-    auto* lvectorsboost = new LVector[N];
+    auto* lvectorsboosted = new LVector[N];
 
     Boost bst(0.3, 0.4, 0.5);
 	lvectorsboost = ROOT::Experimental::ApplyBoost(lvectors.get(), bst, N);
