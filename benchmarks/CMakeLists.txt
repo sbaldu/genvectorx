@@ -10,11 +10,13 @@ if (cuda)
   target_link_libraries(BoostCuda_bench PUBLIC GenVectorX SYCLMath VecOps)
   target_compile_options(BoostCuda_bench PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
   set_target_properties(BoostCuda_bench PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+  target_link_libraries(BoostCuda_bench PRIVATE benchmark::benchmark)
 
   add_executable(InvariantMassCuda_bench InvariantMass.cu)
   set_target_properties(InvariantMassCuda_bench PROPERTIES LINKER_LANGUAGE CUDA)
   target_link_libraries(InvariantMassCuda_bench PUBLIC GenVectorX SYCLMath VecOps)
   target_compile_options(InvariantMassCuda_bench PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
   set_target_properties(InvariantMassCuda_bench PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+  target_link_libraries(InvariantMassCuda_bench PRIVATE benchmark::benchmark)
 endif()
 
