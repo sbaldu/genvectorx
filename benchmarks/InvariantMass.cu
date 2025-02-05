@@ -15,19 +15,8 @@ using vec4d = ROOT::Experimental::LorentzVector<
     ROOT::Experimental::PtEtaPhiM4D<arithmetic_type>>;
 template <class T> using Vector = std::vector<T>;
 
-vec4d *GenVectors(int n) {
-  vec4d *vectors = new vec4d[n];
-
-  for (int i = 0; i < n; ++i) {
-    // fill vectors
-    vectors[i] = {1., 1., 1., 1.};
-  }
-
-  return vectors;
-}
-
 auto GenVectors(int n) {
-  auto vectors = std::make_unique<LVector[]>(n);
+  auto vectors = std::make_unique<vec4d[]>(n);
 
   // generate n -4 momentum quantities
   std::for_each(vectors.get(), vectors.get() + n,
@@ -45,13 +34,13 @@ void BM_InvariantMass(benchmark::State &state) {
     const auto N = state.range(0);
     size_t local_size = 128;
 
-    vec4d *u_vectors = GenVectors(N);
-    vec4d *v_vectors = GenVectors(N);
+    auto u_vectors = GenVectors(N);
+    auto v_vectors = GenVectors(N);
 
     arithmetic_type *masses = new arithmetic_type[N];
 
     masses = ROOT::Experimental::InvariantMasses<arithmetic_type, vec4d>(
-        u_vectors, v_vectors, N, local_size);
+        u_vectors.get(), v_vectors.get(), N, local_size);
   }
 }
 
