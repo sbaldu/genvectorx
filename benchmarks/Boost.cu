@@ -49,6 +49,6 @@ static void BM_ApplyBoost(benchmark::State &state) {
   }
 }
 
-BENCHMARK(BM_ApplyBoost)->RangeMultiplier(2)->Range(1 << 10, 1 << 20);
+BENCHMARK(BM_ApplyBoost)->RangeMultiplier(2)->Range(1 << 10, 1 << 20)->UseRealTime();
 
 BENCHMARK_MAIN();

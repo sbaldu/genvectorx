@@ -44,6 +44,6 @@ void BM_InvariantMass(benchmark::State &state) {
   }
 }
 
-BENCHMARK(BM_InvariantMass)->RangeMultiplier(2)->Range(1 << 10, 1 << 20);
+BENCHMARK(BM_InvariantMass)->RangeMultiplier(2)->Range(1 << 10, 1 << 20)->UseRealTime();
 
 BENCHMARK_MAIN();
