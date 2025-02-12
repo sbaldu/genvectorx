@@ -86,6 +86,50 @@ namespace ROOT
       return lvb;
     }
 
+	template <class Boost, class LVector>
+    LVector *ApplyBoost(LVector *lv, Boost bst, const size_t N,
+                        const size_t local_size, cudaStream_t queue)
+    {
+      LVector *lvb = new LVector[N];
+
+      LVector *d_lv = NULL;
+      ERRCHECK(cudaMallocAsync((void **)&d_lv, N * sizeof(LVector), queue));
+
+      // Allocate device input vector
+      LVector *d_lvb = NULL;
+      ERRCHECK(cudaMallocAsync((void **)&d_lvb, N * sizeof(LVector), queue));
+
+      // Allocate the device output vector
+      Boost *d_bst = NULL;
+      ERRCHECK(cudaMallocAsync((void **)&d_bst, sizeof(Boost), queue));
+
+#ifdef ROOT_MEAS_TIMING
+      auto start = std::chrono::system_clock::now();
+#endif
+
+      cudaMemcpyAsync(d_lv, lv, N * sizeof(LVector), cudaMemcpyHostToDevice, queue);
+      cudaMemcpyAsync(d_bst, &bst, sizeof(Boost), cudaMemcpyHostToDevice, queue);
+
+      ApplyBoostKernel<<<N / local_size + 1, local_size, 0, queue>>>(d_lv, d_lvb, d_bst, N);
+
+      ERRCHECK(cudaMemcpyAsync(lvb, d_lvb, N * sizeof(LVector), cudaMemcpyDeviceToHost, queue));
+
+#ifdef ROOT_MEAS_TIMING
+      auto end = std::chrono::system_clock::now();
+      auto duration =
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start)
+              .count() *
+          1e-6;
+      std::cout << "cuda time " << duration << " (s)" << std::endl;
+#endif
+      ERRCHECK(cudaFreeAsync(d_lv, queue));
+      ERRCHECK(cudaFreeAsync(d_lvb, queue));
+      ERRCHECK(cudaFreeAsync(d_bst, queue));
+
+      return lvb;
+    }
+
+
     template <class Scalar, class LVector>
     __global__ void InvariantMassKernel(LVector *vec, Scalar *m, size_t N)
     {
@@ -110,33 +154,33 @@ namespace ROOT
 
     template <class Scalar, class LVector>
     Scalar *InvariantMasses(LVector *v1, LVector *v2, const size_t N,
-                            const size_t local_size)
+                            const size_t local_size, cudaStream_t queue)
     {
 
       Scalar *invMasses = new Scalar[N];
 
       // Allocate device input vector
       LVector *d_v1 = NULL;
-      ERRCHECK(cudaMalloc((void **)&d_v1, N * sizeof(LVector)));
+      ERRCHECK(cudaMallocAsync((void **)&d_v1, N * sizeof(LVector), queue));
 
       // Allocate device input vector
       LVector *d_v2 = NULL;
-      ERRCHECK(cudaMalloc((void **)&d_v2, N * sizeof(LVector)));
+      ERRCHECK(cudaMallocAsync((void **)&d_v2, N * sizeof(LVector), queue));
 
       // Allocate the device output vector
       Scalar *d_invMasses = NULL;
-      ERRCHECK(cudaMalloc((void **)&d_invMasses, N * sizeof(Scalar)));
+      ERRCHECK(cudaMallocAsync((void **)&d_invMasses, N * sizeof(Scalar), queue));
 
 #ifdef ROOT_MEAS_TIMING
       auto start = std::chrono::system_clock::now();
 #endif
 
-      cudaMemcpy(d_v1, v1, N * sizeof(LVector), cudaMemcpyHostToDevice);
-      cudaMemcpy(d_v2, v2, N * sizeof(LVector), cudaMemcpyHostToDevice);
+      cudaMemcpyAsync(d_v1, v1, N * sizeof(LVector), cudaMemcpyHostToDevice, queue);
+      cudaMemcpyAsync(d_v2, v2, N * sizeof(LVector), cudaMemcpyHostToDevice, queue);
 
-      InvariantMassesKernel<<<N / local_size + 1, local_size>>>(d_v1, d_v2, d_invMasses, N);
+      InvariantMassesKernel<<<N / local_size + 1, local_size, 0, queue>>>(d_v1, d_v2, d_invMasses, N);
 
-      ERRCHECK(cudaMemcpy(invMasses, d_invMasses, N * sizeof(Scalar), cudaMemcpyDeviceToHost));
+      ERRCHECK(cudaMemcpyAsync(invMasses, d_invMasses, N * sizeof(Scalar), cudaMemcpyDeviceToHost, queue));
 
 #ifdef ROOT_MEAS_TIMING
       auto end = std::chrono::system_clock::now();
@@ -146,15 +190,15 @@ namespace ROOT
           1e-6;
       std::cout << "cuda time " << duration << " (s)" << std::endl;
 #endif
-      ERRCHECK(cudaFree(d_v1));
-      ERRCHECK(cudaFree(d_v2));
-      ERRCHECK(cudaFree(d_invMasses));
+      ERRCHECK(cudaFreeAsync(d_v1, queue));
+      ERRCHECK(cudaFreeAsync(d_v2, queue));
+      ERRCHECK(cudaFreeAsync(d_invMasses, queue));
 
       return invMasses;
     }
 
     template <class Scalar, class LVector>
-    Scalar *InvariantMass(LVector *v1, const size_t N, const size_t local_size)
+    Scalar *InvariantMass(LVector *v1, const size_t N, const size_t local_size, cudaStream_t queue)
     {
 
       Scalar *invMasses = new Scalar[N];
@@ -165,16 +209,16 @@ namespace ROOT
 
       // Allocate the device input vector
       LVector *d_v1 = NULL;
-      ERRCHECK(cudaMalloc((void **)&d_v1, N * sizeof(LVector)));
+      ERRCHECK(cudaMallocAsync((void **)&d_v1, N * sizeof(LVector), queue));
 
       // Allocate the device output vector
       Scalar *d_invMasses = NULL;
-      ERRCHECK(cudaMalloc((void **)&d_invMasses, N * sizeof(Scalar)));
-      ERRCHECK(cudaMemcpy(d_v1, v1, N * sizeof(LVector), cudaMemcpyHostToDevice));
+      ERRCHECK(cudaMallocAsync((void **)&d_invMasses, N * sizeof(Scalar), queue));
+      ERRCHECK(cudaMemcpyAsync(d_v1, v1, N * sizeof(LVector), cudaMemcpyHostToDevice, queue));
 
       InvariantMassKernel<<<N / local_size + 1, local_size>>>(d_v1, d_invMasses, N);
 
-      ERRCHECK(cudaMemcpy(invMasses, d_invMasses, N * sizeof(Scalar), cudaMemcpyDeviceToHost));
+      ERRCHECK(cudaMemcpyAsync(invMasses, d_invMasses, N * sizeof(Scalar), cudaMemcpyDeviceToHost, queue));
 
 #ifdef ROOT_MEAS_TIMING
       auto end = std::chrono::system_clock::now();
@@ -185,8 +229,8 @@ namespace ROOT
       std::cout << "cuda time " << duration << " (s)" << std::endl;
 #endif
 
-      ERRCHECK(cudaFree(d_v1));
-      ERRCHECK(cudaFree(d_invMasses));
+      ERRCHECK(cudaFreeAsync(d_v1, queue));
+      ERRCHECK(cudaFreeAsync(d_invMasses, queue));
 
       return invMasses;
     }
