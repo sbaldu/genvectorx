@@ -1,11 +1,125 @@
 set(sycl_compile_list_single "${sycl_compile_list}")
 list(APPEND sycl_compile_list_single SINGLE_PRECISION)
 
+set(alpaka_compile_list_single "${alpaka_compile_list}")
+list(APPEND alpaka_compile_list_single SINGLE_PRECISION)
+
 set(cuda_compile_list_single "${cuda_compile_list}")
 list(APPEND cuda_compile_list_single SINGLE_PRECISION)
 
 set(compile_list_single "${compile_list}")
 list(APPEND compile_list_single SINGLE_PRECISION)
+
+<<<<<<< HEAD
+if(oneapi)
+  add_executable(InvariantMassesSYCL InvariantMassesSYCL.cxx)
+  target_link_options(InvariantMassesSYCL PUBLIC -E)
+  add_sycl_to_root_target_exe(
+    TARGET
+    InvariantMassesSYCL
+    SOURCES
+    InvariantMassesSYCL.cxx
+    DEPENDENCIES
+    GenVectorX
+    SYCLMath
+    VecOps
+    INCLUDE_DIRECTORIES
+    ${CMAKE_SOURCE_DIR}/inc
+    COMPILE_DEFINITIONS
+    ${sycl_compile_list})
+
+  add_executable(BoostSYCL BoostSYCL.cxx)
+  target_link_options(BoostSYCL PUBLIC -E)
+  add_sycl_to_root_target_exe(
+    TARGET
+    BoostSYCL
+    SOURCES
+    BoostSYCL.cxx
+    DEPENDENCIES
+    GenVectorX
+    SYCLMath
+    VecOps
+    INCLUDE_DIRECTORIES
+    ${CMAKE_SOURCE_DIR}/inc
+    COMPILE_DEFINITIONS
+    ${sycl_compile_list})
+
+  if(single_precision)
+    add_executable(SInvariantMassesSYCL InvariantMassesSYCL.cxx)
+    target_link_options(SInvariantMassesSYCL PUBLIC -E)
+    add_sycl_to_root_target_exe(
+      TARGET
+      SInvariantMassesSYCL
+      SOURCES
+      InvariantMassesSYCL.cxx
+      DEPENDENCIES
+      GenVectorX
+      SYCLMath
+      VecOps
+      INCLUDE_DIRECTORIES
+      ${CMAKE_SOURCE_DIR}/inc
+      COMPILE_DEFINITIONS
+      ${sycl_compile_list_single})
+
+=======
+if(alpaka)
+
+  if(alpakacpu)
+    add_executable(BoostAlpakaCpu BoostAlpaka.cxx)
+    target_compile_options(
+      BoostAlpakaCpu PRIVATE -DALPAKA_HOST_ONLY
+                             -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+    target_include_directories(
+      BoostAlpakaCpu PRIVATE ${Alpaka_SOURCE_DIR}/include ${Boost_INCLUDE_DIR})
+    target_compile_definitions(
+      BoostAlpakaCpu PRIVATE ${alpaka_compile_list} ALPAKA_HOST_ONLY
+                             ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+
+    add_executable(InvariantMassesAlpakaCpu InvariantMassesAlpaka.cxx)
+    target_include_directories(
+      InvariantMassesAlpakaCpu PRIVATE ${Alpaka_SOURCE_DIR}/include
+                                       ${Boost_INCLUDE_DIR})
+    target_compile_definitions(
+      InvariantMassesAlpakaCpu PRIVATE ${alpaka_compile_list} ALPAKA_HOST_ONLY
+                                       ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+  endif()
+
+  if(alpakacuda)
+    add_executable(BoostAlpakaCuda BoostAlpaka.cxx)
+    target_compile_options(BoostAlpakaCuda
+                           PRIVATE -DALPAKA_ACC_GPU_CUDA_ENABLED)
+    target_include_directories(
+      BoostAlpakaCuda PRIVATE ${Alpaka_SOURCE_DIR}/include ${Boost_INCLUDE_DIR})
+    target_compile_definitions(
+      BoostAlpakaCuda PRIVATE ${alpaka_compile_list}
+                              ALPAKA_ACC_GPU_CUDA_ENABLED)
+
+    add_executable(InvariantMassesAlpakaCuda InvariantMassesAlpaka.cxx)
+    target_include_directories(
+      InvariantMassesAlpakaCuda PRIVATE ${Alpaka_SOURCE_DIR}/include
+                                        ${Boost_INCLUDE_DIR})
+    target_compile_definitions(
+      InvariantMassesAlpakaCuda PRIVATE ${alpaka_compile_list}
+                                        ALPAKA_ACC_GPU_CUDA_ENABLED)
+  endif()
+
+  if(alpakahip)
+    add_executable(BoostAlpakaHip BoostAlpaka.cxx)
+    target_include_directories(
+      BoostAlpakaHip PRIVATE ${Alpaka_SOURCE_DIR}/include ${Boost_INCLUDE_DIR})
+    target_compile_definitions(
+      BoostAlpakaHip PRIVATE ${alpaka_compile_list} ALPAKA_ACC_GPU_HIP_ENABLED)
+
+    add_executable(InvariantMassesAlpakaHip InvariantMassesAlpaka.cxx)
+    target_include_directories(
+      InvariantMassesAlpakaHip PRIVATE ${Alpaka_SOURCE_DIR}/include
+                                       ${Boost_INCLUDE_DIR})
+    target_compile_definitions(
+      InvariantMassesAlpakaHip PRIVATE ${alpaka_compile_list}
+                                       ALPAKA_ACC_GPU_HIP_ENABLED)
+  endif()
+
+endif()
 
 if(oneapi)
   add_executable(InvariantMassesSYCL InvariantMassesSYCL.cxx)
@@ -72,6 +186,7 @@ if(oneapi)
       ${CMAKE_SOURCE_DIR}/inc
       COMPILE_DEFINITIONS
       ${sycl_compile_list_single})
+
   endif()
 
 endif()
@@ -137,6 +252,7 @@ if(adaptivecpp)
       ${CMAKE_SOURCE_DIR}/inc
       COMPILE_DEFINITIONS
       ${sycl_compile_list_single})
+
   endif()
 
 endif()
