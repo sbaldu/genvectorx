@@ -242,6 +242,16 @@ if (cuda)
   endif()
 endif()
 
+if (hip)
+  include(CheckLanguage)
+  check_language(HIP)
+  if (CMAKE_HIP_COMPILER)
+	enable_language(HIP)
+  else()
+	message(FATAL_ERROR "HIP library not found")
+  endif()
+endif()
+
 if (cuda)
   add_library(SYCLMath SHARED
   src/MathUtil.cxx
@@ -253,6 +263,16 @@ if (cuda)
   list(APPEND cuda_compile_list ROOT_MATH_CUDA)
   if (timing)
     list(APPEND cuda_compile_list ROOT_MEAS_TIMING)
+  endif()
+elseif(hip)
+  add_library(SYCLMath SHARED
+	src/MathUtil.cxx
+  )
+  set_source_files_properties(src/MathUtil.cxx PROPERTIES LANGUAGE HIP)
+  target_compile_definitions(SYCLMath INTERFACE ROOT_MATH_HIP)
+  list(APPEND hip_compile_list ROOT_MATH_HIP)
+  if (timing)
+    list(APPEND hip_compile_list ROOT_MEAS_TIMING)
   endif()
 else()
   add_library(SYCLMath SHARED
