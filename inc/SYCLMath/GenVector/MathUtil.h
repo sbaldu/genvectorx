@@ -48,7 +48,7 @@
 #define __roohost__ __host__
 #define __rooglobal__ __global__
 
-#elif defined(ROOT_MATH_HIP)
+#elif defined(ROOT_MATH_HIP) && defined(__HIPCC__)
 
 #define __roodevice__ __device__
 #define __roohost__ __host__

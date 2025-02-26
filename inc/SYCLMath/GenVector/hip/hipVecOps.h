@@ -3,6 +3,8 @@
 #include <chrono>
 #include <iostream>
 
+#include <hip/hip_runtime.h>
+
 namespace ROOT {
   namespace Experimental {
 
@@ -30,12 +32,12 @@ namespace ROOT {
       Boost* d_bst = NULL;
       ERRCHECK(hipMalloc((void**)&d_bst, sizeof(Boost)));
 
-      hipMemcpy(d_lv, lv, N * sizeof(LVector), cudaMemcpyHostToDevice);
-      hipMemcpy(d_bst, &bst, sizeof(Boost), cudaMemcpyHostToDevice);
+      hipMemcpy(d_lv, lv, N * sizeof(LVector), hipMemcpyHostToDevice);
+      hipMemcpy(d_bst, &bst, sizeof(Boost), hipMemcpyHostToDevice);
 
       ApplyBoostKernel<<<N / local_size + 1, local_size>>>(d_lv, d_lvb, d_bst, N);
 
-      ERRCHECK(hipMemcpy(lvb, d_lvb, N * sizeof(LVector), cudaMemcpyDeviceToHost));
+      ERRCHECK(hipMemcpy(lvb, d_lvb, N * sizeof(LVector), hipMemcpyDeviceToHost));
 
       ERRCHECK(hipFree(d_lv));
       ERRCHECK(hipFree(d_lvb));
@@ -63,14 +65,14 @@ namespace ROOT {
       Boost* d_bst = NULL;
       ERRCHECK(hipMallocAsync((void**)&d_bst, sizeof(Boost), stream));
 
-      hipMemcpyAsync(d_lv, lv, N * sizeof(LVector), cudaMemcpyHostToDevice, stream);
-      hipMemcpyAsync(d_bst, &bst, sizeof(Boost), cudaMemcpyHostToDevice, stream);
+      hipMemcpyAsync(d_lv, lv, N * sizeof(LVector), hipMemcpyHostToDevice, stream);
+      hipMemcpyAsync(d_bst, &bst, sizeof(Boost), hipMemcpyHostToDevice, stream);
 
       ApplyBoostKernel<<<N / local_size + 1, local_size, 0, stream>>>(
           d_lv, d_lvb, d_bst, N);
 
       ERRCHECK(hipMemcpyAsync(
-          lvb, d_lvb, N * sizeof(LVector), cudaMemcpyDeviceToHost, stream));
+          lvb, d_lvb, N * sizeof(LVector), hipMemcpyDeviceToHost, stream));
 
       ERRCHECK(hipFreeAsync(d_lv));
       ERRCHECK(hipFreeAsync(d_lvb));
@@ -116,14 +118,14 @@ namespace ROOT {
       Scalar* d_invMasses = NULL;
       ERRCHECK(hipMalloc((void**)&d_invMasses, N * sizeof(Scalar)));
 
-      hipMemcpy(d_v1, v1, N * sizeof(LVector), cudaMemcpyHostToDevice);
-      hipMemcpy(d_v2, v2, N * sizeof(LVector), cudaMemcpyHostToDevice);
+      hipMemcpy(d_v1, v1, N * sizeof(LVector), hipMemcpyHostToDevice);
+      hipMemcpy(d_v2, v2, N * sizeof(LVector), hipMemcpyHostToDevice);
 
       InvariantMassesKernel<<<N / local_size + 1, local_size>>>(
           d_v1, d_v2, d_invMasses, N);
 
       ERRCHECK(
-          hipMemcpy(invMasses, d_invMasses, N * sizeof(Scalar), cudaMemcpyDeviceToHost));
+          hipMemcpy(invMasses, d_invMasses, N * sizeof(Scalar), hipMemcpyDeviceToHost));
 
       ERRCHECK(hipFree(d_v1));
       ERRCHECK(hipFree(d_v2));
@@ -152,14 +154,14 @@ namespace ROOT {
       Scalar* d_invMasses = NULL;
       ERRCHECK(hipMallocAsync((void**)&d_invMasses, N * sizeof(Scalar), stream));
 
-      hipMemcpyAsync(d_v1, v1, N * sizeof(LVector), cudaMemcpyHostToDevice, stream);
-      hipMemcpyAsync(d_v2, v2, N * sizeof(LVector), cudaMemcpyHostToDevice, stream);
+      hipMemcpyAsync(d_v1, v1, N * sizeof(LVector), hipMemcpyHostToDevice, stream);
+      hipMemcpyAsync(d_v2, v2, N * sizeof(LVector), hipMemcpyHostToDevice, stream);
 
       InvariantMassesKernel<<<N / local_size + 1, local_size>>>(
           d_v1, d_v2, d_invMasses, N);
 
       ERRCHECK(hipMemcpyAsync(
-          invMasses, d_invMasses, N * sizeof(Scalar), cudaMemcpyDeviceToHost, stream));
+          invMasses, d_invMasses, N * sizeof(Scalar), hipMemcpyDeviceToHost, stream));
 
       ERRCHECK(hipFreeAsync(d_v1, stream));
       ERRCHECK(hipFreeAsync(d_v2, stream));
@@ -179,12 +181,12 @@ namespace ROOT {
       // Allocate the device output vector
       Scalar* d_invMasses = NULL;
       ERRCHECK(hipMalloc((void**)&d_invMasses, N * sizeof(Scalar)));
-      ERRCHECK(hipMemcpy(d_v1, v1, N * sizeof(LVector), cudaMemcpyHostToDevice));
+      ERRCHECK(hipMemcpy(d_v1, v1, N * sizeof(LVector), hipMemcpyHostToDevice));
 
       InvariantMassKernel<<<N / local_size + 1, local_size>>>(d_v1, d_invMasses, N);
 
       ERRCHECK(
-          hipMemcpy(invMasses, d_invMasses, N * sizeof(Scalar), cudaMemcpyDeviceToHost));
+          hipMemcpy(invMasses, d_invMasses, N * sizeof(Scalar), hipMemcpyDeviceToHost));
 
       ERRCHECK(hipFree(d_v1));
       ERRCHECK(hipFree(d_invMasses));
@@ -207,12 +209,12 @@ namespace ROOT {
       Scalar* d_invMasses = NULL;
       ERRCHECK(hipMallocAsync((void**)&d_invMasses, N * sizeof(Scalar), stream));
       ERRCHECK(
-          hipMemcpyAsync(d_v1, v1, N * sizeof(LVector), cudaMemcpyHostToDevice, stream));
+          hipMemcpyAsync(d_v1, v1, N * sizeof(LVector), hipMemcpyHostToDevice, stream));
 
       InvariantMassKernel<<<N / local_size + 1, local_size>>>(d_v1, d_invMasses, N);
 
       ERRCHECK(hipMemcpyAsync(
-          invMasses, d_invMasses, N * sizeof(Scalar), cudaMemcpyDeviceToHost, stream));
+          invMasses, d_invMasses, N * sizeof(Scalar), hipMemcpyDeviceToHost, stream));
 
       ERRCHECK(hipFreeAsync(d_v1, stream));
       ERRCHECK(hipFreeAsync(d_invMasses, stream));
