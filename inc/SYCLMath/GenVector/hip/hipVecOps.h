@@ -5,6 +5,16 @@
 
 #include <hip/hip_runtime.h>
 
+#define ERRCHECK(condition)                                                           \
+  {                                                                                   \
+    const hipError_t error = condition;                                               \
+    if (error != hipSuccess) {                                                        \
+      std::cerr << "An error encountered: \"" << hipGetErrorString(error) << "\" at " \
+                << __FILE__ << ':' << __LINE__ << std::endl;                          \
+      std::exit(-1);                                                                  \
+    }                                                                                 \
+  }
+
 namespace ROOT {
   namespace Experimental {
 
@@ -50,7 +60,7 @@ namespace ROOT {
     LVector* ApplyBoost(LVector* lv,
                         Boost bst,
                         const size_t N,
-                        hitStream_t stream,
+                        hipStream_t stream,
                         const size_t local_size) {
       LVector* lvb = new LVector[N];
 
@@ -71,12 +81,12 @@ namespace ROOT {
       ApplyBoostKernel<<<N / local_size + 1, local_size, 0, stream>>>(
           d_lv, d_lvb, d_bst, N);
 
-      ERRCHECK(hipMemcpyAsync(
-          lvb, d_lvb, N * sizeof(LVector), hipMemcpyDeviceToHost, stream));
+      ERRCHECK(
+          hipMemcpyAsync(lvb, d_lvb, N * sizeof(LVector), hipMemcpyDeviceToHost, stream));
 
-      ERRCHECK(hipFreeAsync(d_lv));
-      ERRCHECK(hipFreeAsync(d_lvb));
-      ERRCHECK(hipFreeAsync(d_bst));
+      ERRCHECK(hipFreeAsync(d_lv, stream));
+      ERRCHECK(hipFreeAsync(d_lvb, stream));
+      ERRCHECK(hipFreeAsync(d_bst, stream));
 
       return lvb;
     }

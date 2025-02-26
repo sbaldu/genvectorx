@@ -24,17 +24,6 @@ inline static void __checkCudaErrors(cudaError_t code,
 
 #elif defined(ROOT_MATH_HIP)
 #include "hip/hipVecOps.h"
-#include <hip/hip_runtime.h>
-
-#define ERRCHECK(condition)                                                           \
-  {                                                                                   \
-    const hipError_t error = condition;                                               \
-    if (error != hipSuccess) {                                                        \
-      std::cerr << "An error encountered: \"" << hipGetErrorString(error) << "\" at " \
-                << __FILE__ << ':' << __LINE__ << std::endl;                          \
-      std::exit(error_exit_code);                                                     \
-    }                                                                                 \
-  }
 
 #endif
 

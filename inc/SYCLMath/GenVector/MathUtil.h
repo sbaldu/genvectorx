@@ -148,7 +148,7 @@ template <typename Scalar> Scalar Eta_FromTheta(Scalar theta, Scalar r) {
   }
 }
 
-#elif defined(ROOT_MATH_CUDA)
+#elif defined(ROOT_MATH_CUDA) || defined(ROOT_MATH_HIP)
 template <class Scalar> 
 __roohost__ __roodevice__ Scalar mysin(Scalar x) { return sin(x); }
 
