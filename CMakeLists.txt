@@ -331,7 +331,7 @@ target_link_libraries(GenVectorX PUBLIC SYCLMath)
 target_compile_definitions(GenVectorX PUBLIC ${compile_list})
 
 
-if ((cuda) OR (sycl))
+if ((cuda) OR (sycl) OR (hip))
   add_library(VecOps SHARED
    src/VecOps.cxx
    )
@@ -342,6 +342,10 @@ if ((cuda) OR (sycl))
     target_compile_options(VecOps PRIVATE -rdc=true -lineinfo --expt-relaxed-constexpr)
     set_target_properties(VecOps PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     target_compile_definitions(VecOps PUBLIC ${cuda_compile_list})
+  endif()
+  if (hip)
+	set_source_files_properties(src/VecOps.cxx PROPERTIES LANGUAGE HIP)
+    target_compile_definitions(VecOps PUBLIC ${hip_compile_list})
   endif()
   if (sycl)
      set_target_properties(VecOps PROPERTIES LINKER_LANGUAGE CXX)
