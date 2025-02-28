@@ -3,6 +3,7 @@
 #include <benchmark/benchmark.h>
 #include <chrono>
 #include <cuda_runtime.h>
+#include <memory>
 #include <vector>
 
 #ifdef SINGLE_PRECISION

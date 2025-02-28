@@ -4,6 +4,7 @@
 #include "SYCLMath/Vector4D.h"
 #include <benchmark/benchmark.h>
 #include <cuda_runtime.h>
+#include <memory>
 #include <vector>
 
 #ifdef SINGLE_PRECISION
