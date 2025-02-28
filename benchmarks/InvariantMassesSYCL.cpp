@@ -14,7 +14,7 @@ using vec4d = ROOT::Experimental::LorentzVector<
     ROOT::Experimental::PtEtaPhiM4D<arithmetic_type>>;
 template <class T> using Vector = std::vector<T>;
 
-vec4d *GenVectors(int n) {
+auto GenVectors(int n) {
   auto vectors = std::make_unique<vec4d[]>(n);
 
   // generate n -4 momentum quantities
