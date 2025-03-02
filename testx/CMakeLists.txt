@@ -85,6 +85,7 @@ if(alpaka)
   endif()
 
   if(alpakacuda)
+	set_source_files_properties(BoostAlpaka.cxx PROPERTIES LANGUAGE CUDA)
     add_executable(BoostAlpakaCuda BoostAlpaka.cxx)
     target_compile_options(BoostAlpakaCuda
                            PRIVATE -DALPAKA_ACC_GPU_CUDA_ENABLED)
@@ -94,6 +95,7 @@ if(alpaka)
       BoostAlpakaCuda PRIVATE ${alpaka_compile_list}
                               ALPAKA_ACC_GPU_CUDA_ENABLED)
 
+	set_source_files_properties(InvariantMassesAlpaka.cxx PROPERTIES LANGUAGE CUDA)
     add_executable(InvariantMassesAlpakaCuda InvariantMassesAlpaka.cxx)
     target_include_directories(
       InvariantMassesAlpakaCuda PRIVATE ${Alpaka_SOURCE_DIR}/include
@@ -104,12 +106,14 @@ if(alpaka)
   endif()
 
   if(alpakahip)
+	set_source_files_properties(BoostAlpaka.cxx PROPERTIES LANGUAGE HIP)
     add_executable(BoostAlpakaHip BoostAlpaka.cxx)
     target_include_directories(
       BoostAlpakaHip PRIVATE ${Alpaka_SOURCE_DIR}/include ${Boost_INCLUDE_DIR})
     target_compile_definitions(
       BoostAlpakaHip PRIVATE ${alpaka_compile_list} ALPAKA_ACC_GPU_HIP_ENABLED)
 
+	set_source_files_properties(InvariantMassesAlpaka.cxx PROPERTIES LANGUAGE HIP)
     add_executable(InvariantMassesAlpakaHip InvariantMassesAlpaka.cxx)
     target_include_directories(
       InvariantMassesAlpakaHip PRIVATE ${Alpaka_SOURCE_DIR}/include
