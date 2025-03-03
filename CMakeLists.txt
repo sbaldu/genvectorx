@@ -265,13 +265,23 @@ if(NOT ACPP_DEBUG_LEVEL)
   endif()
 endif()
 
-if(cuda)
+if((cuda) OR ((alpaka) AND (alpakacuda)))
   include(CheckLanguage)
   check_language(CUDA)
   if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
   else()
     message(FATAL_ERROR "CUDA library not found")
+  endif()
+endif()
+
+if((hip) OR ((alpaka) AND (alpakahip)))
+  include(CheckLanguage)
+  check_language(HIP)
+  if(CMAKE_HIP_COMPILER)
+	enable_language(HIP)
+  else()
+	message(FATAL_ERROR "HIP library not found")
   endif()
 endif()
 
@@ -292,7 +302,7 @@ elseif(alpaka)
   set(CMAKE_CXX_EXTENSIONS OFF)
 
   find_package(Boost 1.74.0 REQUIRED)
-  find_package(alpaka 2.0.0 REQUIRED)
+  find_package(alpaka 1.2.0 REQUIRED)
 
   add_library(SYCLMath SHARED src/MathUtil.cxx)
   target_include_directories(SYCLMath PRIVATE ${Alpaka_SOURCE_DIR}/include
